@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { MainLayout } from "@/modules/layout/components/main-layout";
 import { SearchPalette } from "@/modules/ui-core/components/search-palette";
-import { Navbar } from "@/shared/components/navbar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,9 +30,8 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="bg-background text-foreground min-h-full flex flex-col">
-        <Navbar />
-        <main className="flex-1">{children}</main>
+      <body className="bg-neutral-100 text-foreground dark:bg-neutral-900">
+        <MainLayout>{children}</MainLayout>
         <SearchPalette />
       </body>
     </html>

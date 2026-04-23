@@ -1,11 +1,14 @@
 import type { Feature, FeatureCollection, LineString, Point } from "geojson";
 
+export type RouteCategory = "brt" | "non-brt" | "jaklingko";
+
 export interface Route {
   route_id: string;
   route_short_name: string;
   route_long_name: string;
   route_color: string;
   route_text_color: string;
+  category: RouteCategory;
 }
 
 export interface RouteLineProperties {
@@ -14,12 +17,14 @@ export interface RouteLineProperties {
   route_short_name: string;
   route_long_name: string;
   route_color: string;
+  category: RouteCategory;
 }
 
 export interface StopProperties {
   stop_id: string;
   stop_name: string;
   connecting_routes: string[];
+  categories: RouteCategory[];
   is_hub: boolean;
   first_bus: string | null;
   last_bus: string | null;

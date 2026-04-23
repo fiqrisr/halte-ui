@@ -39,12 +39,25 @@ interface StopTimeRow {
   departure_time: string;
 }
 
+type RouteCategory = "brt" | "non-brt" | "jaklingko";
+
 interface OutputRoute {
   route_id: string;
   route_short_name: string;
   route_long_name: string;
   route_color: string;
   route_text_color: string;
+  category: RouteCategory;
+}
+
+// Numeric-only ("1", "13") or numeric + single letter ("13A", "10B").
+const BRT_PATTERN = /^\d+[A-Za-z]?$/;
+
+function classifyRoute(routeShortName: string): RouteCategory {
+  const name = (routeShortName ?? "").trim();
+  if (name.toUpperCase().startsWith("JAK")) return "jaklingko";
+  if (BRT_PATTERN.test(name)) return "brt";
+  return "non-brt";
 }
 
 const ROOT = resolve(process.cwd());
@@ -108,6 +121,7 @@ function main() {
       route_long_name: r.route_long_name ?? "",
       route_color: normalizeHex(r.route_color, "#6b7280"),
       route_text_color: normalizeHex(r.route_text_color, "#ffffff"),
+      category: classifyRoute(r.route_short_name ?? ""),
     }));
 
   const routeIndex = buildRouteIndex(routes);
@@ -127,6 +141,7 @@ function main() {
     route_short_name: string;
     route_long_name: string;
     route_color: string;
+    category: RouteCategory;
   };
 
   const routeFeatures: GeoJSON.Feature<GeoJSON.LineString, RouteLineProps>[] =
@@ -160,6 +175,7 @@ function main() {
       route_short_name: matchedRoute.route_short_name,
       route_long_name: matchedRoute.route_long_name,
       route_color: matchedRoute.route_color,
+      category: matchedRoute.category,
     });
 
     const simplified = simplify(raw, {
@@ -230,10 +246,13 @@ function main() {
     stop_id: string;
     stop_name: string;
     connecting_routes: string[];
+    categories: RouteCategory[];
     is_hub: boolean;
     first_bus: string | null;
     last_bus: string | null;
   };
+
+  const routeById = new Map(routes.map((r) => [r.route_id, r] as const));
 
   const stopFeatures: GeoJSON.Feature<GeoJSON.Point, StopProps>[] = stopRows
     .filter((s) => s.location_type === "1")
@@ -244,10 +263,16 @@ function main() {
       const connecting = Array.from(
         stationRoutes.get(s.stop_id) ?? new Set<string>(),
       ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+      const categorySet = new Set<RouteCategory>();
+      for (const routeId of connecting) {
+        const r = routeById.get(routeId);
+        if (r) categorySet.add(r.category);
+      }
       return point<StopProps>([lng, lat], {
         stop_id: s.stop_id,
         stop_name: s.stop_name,
         connecting_routes: connecting,
+        categories: Array.from(categorySet),
         is_hub: connecting.length > 3,
         first_bus: toHhMm(stationFirst.get(s.stop_id)),
         last_bus: toHhMm(stationLast.get(s.stop_id)),

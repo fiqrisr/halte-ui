@@ -34,7 +34,7 @@ export function TransitMapView() {
   }, [setTransitData]);
 
   return (
-    <div className="relative h-[calc(100vh-4rem)] w-full">
+    <div className="relative h-full min-h-[480px] w-full">
       <MapCanvas center={JAKARTA_CENTER} zoom={INITIAL_ZOOM}>
         <MapControls />
         <TransitLayers />
