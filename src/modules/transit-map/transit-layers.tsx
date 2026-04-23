@@ -1,20 +1,22 @@
 "use client";
 
+import { featureCollection, lineString, point } from "@turf/helpers";
+import nearestPoint from "@turf/nearest-point";
+import type { FeatureCollection, LineString } from "geojson";
 import { MapPin } from "lucide-react";
 import type { MapMouseEvent } from "maplibre-gl";
-import { useEffect, useState } from "react";
-import type { RoutesGeoJSON, StopsGeoJSON } from "@/modules/gtfs-data/types";
+import { useEffect, useMemo, useState } from "react";
+import { useMapStore } from "@/modules/transit-map/store/map-store";
 import { MapPopup, useMap } from "@/shared/components/ui/map";
 
 const ROUTES_SOURCE_ID = "transit-routes";
 const ROUTES_LAYER_ID = "transit-routes-line";
 const STOPS_SOURCE_ID = "transit-stops";
 const STOPS_LAYER_ID = "transit-stops-circle";
-
-interface TransitLayersProps {
-  routesGeoJSON: RoutesGeoJSON;
-  stopsGeoJSON: StopsGeoJSON;
-}
+const USER_SOURCE_ID = "user-location";
+const USER_LAYER_ID = "user-location-circle";
+const NEAREST_SOURCE_ID = "nearest-stop-line";
+const NEAREST_LAYER_ID = "nearest-stop-line-layer";
 
 interface SelectedStop {
   id: string;
@@ -23,16 +25,22 @@ interface SelectedStop {
   lat: number;
 }
 
-export function TransitLayers({
-  routesGeoJSON,
-  stopsGeoJSON,
-}: TransitLayersProps) {
+export function TransitLayers() {
   const { map, isLoaded } = useMap();
-  const [selected, setSelected] = useState<SelectedStop | null>(null);
+  const transitData = useMapStore((s) => s.transitData);
+  const selectedRouteId = useMapStore((s) => s.selectedRouteId);
+  const userLocation = useMapStore((s) => s.userLocation);
+  const flyTarget = useMapStore((s) => s.flyTarget);
+  const setSelectedStop = useMapStore((s) => s.setSelectedStop);
 
-  // Add/update the routes + stops sources and layers.
+  const [hoverPopup, setHoverPopup] = useState<SelectedStop | null>(null);
+
+  const routesGeoJSON = transitData?.routesGeoJSON;
+  const stopsGeoJSON = transitData?.stopsGeoJSON;
+
+  // --- Initial source + layer registration ---
   useEffect(() => {
-    if (!map || !isLoaded) return;
+    if (!map || !isLoaded || !routesGeoJSON || !stopsGeoJSON) return;
 
     if (!map.getSource(ROUTES_SOURCE_ID)) {
       map.addSource(ROUTES_SOURCE_ID, {
@@ -40,8 +48,9 @@ export function TransitLayers({
         data: routesGeoJSON,
       });
     } else {
-      const src = map.getSource(ROUTES_SOURCE_ID) as maplibregl.GeoJSONSource;
-      src.setData(routesGeoJSON);
+      (map.getSource(ROUTES_SOURCE_ID) as maplibregl.GeoJSONSource).setData(
+        routesGeoJSON,
+      );
     }
 
     if (!map.getLayer(ROUTES_LAYER_ID)) {
@@ -49,10 +58,7 @@ export function TransitLayers({
         id: ROUTES_LAYER_ID,
         type: "line",
         source: ROUTES_SOURCE_ID,
-        layout: {
-          "line-cap": "round",
-          "line-join": "round",
-        },
+        layout: { "line-cap": "round", "line-join": "round" },
         paint: {
           "line-color": ["get", "route_color"],
           "line-width": 3,
@@ -67,8 +73,9 @@ export function TransitLayers({
         data: stopsGeoJSON,
       });
     } else {
-      const src = map.getSource(STOPS_SOURCE_ID) as maplibregl.GeoJSONSource;
-      src.setData(stopsGeoJSON);
+      (map.getSource(STOPS_SOURCE_ID) as maplibregl.GeoJSONSource).setData(
+        stopsGeoJSON,
+      );
     }
 
     if (!map.getLayer(STOPS_LAYER_ID)) {
@@ -77,84 +84,198 @@ export function TransitLayers({
         type: "circle",
         source: STOPS_SOURCE_ID,
         paint: {
-          "circle-radius": 4,
-          "circle-color": "#ffffff",
-          "circle-stroke-width": 2,
+          // Hubs render larger with a bold outline for visual prominence.
+          "circle-radius": ["case", ["==", ["get", "is_hub"], true], 7, 4],
+          "circle-color": [
+            "case",
+            ["==", ["get", "is_hub"], true],
+            "#facc15",
+            "#ffffff",
+          ],
+          "circle-stroke-width": [
+            "case",
+            ["==", ["get", "is_hub"], true],
+            3,
+            2,
+          ],
           "circle-stroke-color": "#000000",
+        },
+      });
+    }
+
+    if (!map.getSource(NEAREST_SOURCE_ID)) {
+      map.addSource(NEAREST_SOURCE_ID, {
+        type: "geojson",
+        data: featureCollection([]),
+      });
+    }
+    if (!map.getLayer(NEAREST_LAYER_ID)) {
+      map.addLayer({
+        id: NEAREST_LAYER_ID,
+        type: "line",
+        source: NEAREST_SOURCE_ID,
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+          "line-color": "#0ea5e9",
+          "line-width": 2.5,
+          "line-dasharray": [2, 2],
+        },
+      });
+    }
+
+    if (!map.getSource(USER_SOURCE_ID)) {
+      map.addSource(USER_SOURCE_ID, {
+        type: "geojson",
+        data: featureCollection([]),
+      });
+    }
+    if (!map.getLayer(USER_LAYER_ID)) {
+      map.addLayer({
+        id: USER_LAYER_ID,
+        type: "circle",
+        source: USER_SOURCE_ID,
+        paint: {
+          "circle-radius": 7,
+          "circle-color": "#0ea5e9",
+          "circle-stroke-width": 3,
+          "circle-stroke-color": "#ffffff",
         },
       });
     }
   }, [map, isLoaded, routesGeoJSON, stopsGeoJSON]);
 
-  // Hover cursor + click-to-open popup on the stops layer.
+  // --- Route focus mode ---
+  useEffect(() => {
+    if (!map || !isLoaded || !map.getLayer(ROUTES_LAYER_ID)) return;
+    if (selectedRouteId) {
+      map.setPaintProperty(ROUTES_LAYER_ID, "line-opacity", [
+        "case",
+        ["==", ["get", "route_id"], selectedRouteId],
+        1.0,
+        0.1,
+      ]);
+      map.setPaintProperty(ROUTES_LAYER_ID, "line-width", [
+        "case",
+        ["==", ["get", "route_id"], selectedRouteId],
+        5,
+        2,
+      ]);
+    } else {
+      map.setPaintProperty(ROUTES_LAYER_ID, "line-opacity", 0.8);
+      map.setPaintProperty(ROUTES_LAYER_ID, "line-width", 3);
+    }
+  }, [map, isLoaded, selectedRouteId]);
+
+  // --- User location + nearest-stop dashed line ---
+  const nearestLine = useMemo<FeatureCollection<LineString> | null>(() => {
+    if (!userLocation || !stopsGeoJSON || stopsGeoJSON.features.length === 0) {
+      return null;
+    }
+    const user = point(userLocation);
+    const nearest = nearestPoint(user, stopsGeoJSON);
+    const line = lineString([
+      userLocation,
+      nearest.geometry.coordinates as [number, number],
+    ]);
+    return featureCollection([line]);
+  }, [userLocation, stopsGeoJSON]);
+
+  useEffect(() => {
+    if (!map || !isLoaded) return;
+    const userSource = map.getSource(USER_SOURCE_ID) as
+      | maplibregl.GeoJSONSource
+      | undefined;
+    const nearestSource = map.getSource(NEAREST_SOURCE_ID) as
+      | maplibregl.GeoJSONSource
+      | undefined;
+    if (!userSource || !nearestSource) return;
+
+    if (userLocation) {
+      userSource.setData(featureCollection([point(userLocation)]));
+    } else {
+      userSource.setData(featureCollection([]));
+    }
+    nearestSource.setData(nearestLine ?? featureCollection([]));
+  }, [map, isLoaded, userLocation, nearestLine]);
+
+  // --- Interactions on the stops layer ---
   useEffect(() => {
     if (!map || !isLoaded) return;
 
-    const handleMouseEnter = () => {
+    const handleMouseEnter = (e: MapMouseEvent) => {
       map.getCanvas().style.cursor = "pointer";
-    };
-    const handleMouseLeave = () => {
-      map.getCanvas().style.cursor = "";
-    };
-
-    const handleClick = (e: MapMouseEvent) => {
-      const features = map.queryRenderedFeatures(e.point, {
+      const feature = map.queryRenderedFeatures(e.point, {
         layers: [STOPS_LAYER_ID],
-      });
-      const feature = features[0];
-      if (!feature || feature.geometry.type !== "Point") {
-        setSelected(null);
-        return;
-      }
+      })[0];
+      if (!feature || feature.geometry.type !== "Point") return;
       const [lng, lat] = feature.geometry.coordinates as [number, number];
       const props = feature.properties as {
         stop_id: string;
         stop_name: string;
       };
-      setSelected({
+      setHoverPopup({
         id: props.stop_id,
         name: props.stop_name,
         lng,
         lat,
       });
     };
+    const handleMouseLeave = () => {
+      map.getCanvas().style.cursor = "";
+      setHoverPopup(null);
+    };
+    const handleClick = (e: MapMouseEvent) => {
+      const feature = map.queryRenderedFeatures(e.point, {
+        layers: [STOPS_LAYER_ID],
+      })[0];
+      if (!feature) {
+        return;
+      }
+      const props = feature.properties as { stop_id: string };
+      setSelectedStop(props.stop_id);
+      setHoverPopup(null);
+    };
 
     map.on("mouseenter", STOPS_LAYER_ID, handleMouseEnter);
+    map.on("mousemove", STOPS_LAYER_ID, handleMouseEnter);
     map.on("mouseleave", STOPS_LAYER_ID, handleMouseLeave);
     map.on("click", STOPS_LAYER_ID, handleClick);
 
     return () => {
       map.off("mouseenter", STOPS_LAYER_ID, handleMouseEnter);
+      map.off("mousemove", STOPS_LAYER_ID, handleMouseEnter);
       map.off("mouseleave", STOPS_LAYER_ID, handleMouseLeave);
       map.off("click", STOPS_LAYER_ID, handleClick);
     };
-  }, [map, isLoaded]);
+  }, [map, isLoaded, setSelectedStop]);
 
-  if (!selected) return null;
+  // --- FlyTo driven by the store ---
+  useEffect(() => {
+    if (!map || !isLoaded || !flyTarget) return;
+    map.flyTo({
+      center: [flyTarget.lng, flyTarget.lat],
+      zoom: flyTarget.zoom,
+      essential: true,
+      speed: 1.4,
+    });
+  }, [map, isLoaded, flyTarget]);
+
+  if (!hoverPopup) return null;
 
   return (
     <MapPopup
-      longitude={selected.lng}
-      latitude={selected.lat}
-      onClose={() => setSelected(null)}
-      closeButton
+      longitude={hoverPopup.lng}
+      latitude={hoverPopup.lat}
+      closeButton={false}
       closeOnClick={false}
       focusAfterOpen={false}
-      className="w-60 p-0"
+      className="w-auto max-w-[220px] p-0"
     >
-      <div className="space-y-1 p-3">
-        <p className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
-          Transjakarta Halte
-        </p>
-        <div className="flex items-start gap-2">
-          <MapPin className="text-foreground/60 mt-0.5 size-3.5 shrink-0" />
-          <h3 className="text-foreground text-sm font-semibold leading-snug">
-            {selected.name}
-          </h3>
-        </div>
-        <p className="text-muted-foreground pt-1 font-mono text-[10px]">
-          {selected.lat.toFixed(5)}, {selected.lng.toFixed(5)}
-        </p>
+      <div className="flex items-start gap-2 p-2.5">
+        <MapPin className="text-foreground/60 mt-0.5 size-3.5 shrink-0" />
+        <span className="text-foreground text-xs font-semibold leading-tight">
+          {hoverPopup.name}
+        </span>
       </div>
     </MapPopup>
   );

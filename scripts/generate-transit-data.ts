@@ -28,6 +28,17 @@ interface StopRow {
   parent_station: string;
 }
 
+interface TripRow {
+  trip_id: string;
+  route_id: string;
+}
+
+interface StopTimeRow {
+  trip_id: string;
+  stop_id: string;
+  departure_time: string;
+}
+
 interface OutputRoute {
   route_id: string;
   route_short_name: string;
@@ -84,6 +95,10 @@ function main() {
   const routeRows = parseCsv<RouteRow>(resolve(GTFS_DIR, "routes.txt"));
   const shapeRows = parseCsv<ShapeRow>(resolve(GTFS_DIR, "shapes.txt"));
   const stopRows = parseCsv<StopRow>(resolve(GTFS_DIR, "stops.txt"));
+  const tripRows = parseCsv<TripRow>(resolve(GTFS_DIR, "trips.txt"));
+  const stopTimeRows = parseCsv<StopTimeRow>(
+    resolve(GTFS_DIR, "stop_times.txt"),
+  );
 
   const routes: OutputRoute[] = routeRows
     .filter((r) => r.route_id)
@@ -159,22 +174,89 @@ function main() {
 
   const routesGeoJSON = featureCollection(routeFeatures);
 
+  // --- Stop-level aggregation: connecting routes, first/last bus ---
+  // Map any platform-level stop_id to its parent station id so that
+  // per-platform stop_times aggregate up to the station we render.
+  const platformToStation = new Map<string, string>();
+  for (const s of stopRows) {
+    if (s.location_type === "1") {
+      platformToStation.set(s.stop_id, s.stop_id);
+    } else if (s.parent_station) {
+      platformToStation.set(s.stop_id, s.parent_station);
+    }
+  }
+
+  const tripToRoute = new Map<string, string>();
+  for (const t of tripRows) {
+    if (t.trip_id && t.route_id) tripToRoute.set(t.trip_id, t.route_id);
+  }
+
+  const stationRoutes = new Map<string, Set<string>>();
+  const stationFirst = new Map<string, string>();
+  const stationLast = new Map<string, string>();
+
+  for (const row of stopTimeRows) {
+    const stationId = platformToStation.get(row.stop_id);
+    if (!stationId) continue;
+    const routeId = tripToRoute.get(row.trip_id);
+    if (routeId) {
+      let set = stationRoutes.get(stationId);
+      if (!set) {
+        set = new Set();
+        stationRoutes.set(stationId, set);
+      }
+      set.add(routeId);
+    }
+    const dep = row.departure_time;
+    if (dep && /^\d{1,2}:\d{2}:\d{2}$/.test(dep)) {
+      const prevFirst = stationFirst.get(stationId);
+      if (!prevFirst || dep < prevFirst) stationFirst.set(stationId, dep);
+      const prevLast = stationLast.get(stationId);
+      if (!prevLast || dep > prevLast) stationLast.set(stationId, dep);
+    }
+  }
+
+  function toHhMm(time: string | undefined): string | null {
+    if (!time) return null;
+    const [h, m] = time.split(":");
+    if (!h || !m) return null;
+    // GTFS allows hours > 23 (e.g., "25:10:00"); clamp visually to 24h.
+    const hh = Math.min(Number(h), 23).toString().padStart(2, "0");
+    return `${hh}:${m}`;
+  }
+
   // Only emit top-level stations (location_type=1) as stop features.
-  type StopProps = { stop_id: string; stop_name: string };
+  type StopProps = {
+    stop_id: string;
+    stop_name: string;
+    connecting_routes: string[];
+    is_hub: boolean;
+    first_bus: string | null;
+    last_bus: string | null;
+  };
+
   const stopFeatures: GeoJSON.Feature<GeoJSON.Point, StopProps>[] = stopRows
     .filter((s) => s.location_type === "1")
     .map((s) => {
       const lng = Number(s.stop_lon);
       const lat = Number(s.stop_lat);
       if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+      const connecting = Array.from(
+        stationRoutes.get(s.stop_id) ?? new Set<string>(),
+      ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
       return point<StopProps>([lng, lat], {
         stop_id: s.stop_id,
         stop_name: s.stop_name,
+        connecting_routes: connecting,
+        is_hub: connecting.length > 3,
+        first_bus: toHhMm(stationFirst.get(s.stop_id)),
+        last_bus: toHhMm(stationLast.get(s.stop_id)),
       });
     })
     .filter((f): f is GeoJSON.Feature<GeoJSON.Point, StopProps> => f !== null);
 
   const stopsGeoJSON = featureCollection(stopFeatures);
+  const hubCount = stopFeatures.filter((f) => f.properties.is_hub).length;
 
   mkdirSync(dirname(OUT_FILE), { recursive: true });
   writeFileSync(
@@ -186,7 +268,9 @@ function main() {
   console.log(
     `[transit-data] Wrote ${routes.length} routes, ${routeFeatures.length} line features (${rawPointCount} -> ${simplifiedPointCount} points, ${(
       (1 - simplifiedPointCount / Math.max(rawPointCount, 1)) * 100
-    ).toFixed(1)}% reduction), ${stopFeatures.length} stops -> ${OUT_FILE}`,
+    ).toFixed(
+      1,
+    )}% reduction), ${stopFeatures.length} stops (${hubCount} hubs) -> ${OUT_FILE}`,
   );
 }
 

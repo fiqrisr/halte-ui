@@ -19,6 +19,10 @@ export interface RouteLineProperties {
 export interface StopProperties {
   stop_id: string;
   stop_name: string;
+  connecting_routes: string[];
+  is_hub: boolean;
+  first_bus: string | null;
+  last_bus: string | null;
 }
 
 export type RouteLineFeature = Feature<LineString, RouteLineProperties>;

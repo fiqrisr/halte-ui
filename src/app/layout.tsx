@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SearchPalette } from "@/modules/ui-core/components/search-palette";
 import { Navbar } from "@/shared/components/navbar";
 import "./globals.css";
 
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className="bg-background text-foreground min-h-full flex flex-col">
         <Navbar />
         <main className="flex-1">{children}</main>
+        <SearchPalette />
       </body>
     </html>
   );
