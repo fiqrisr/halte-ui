@@ -12,12 +12,15 @@ export interface FlyTarget {
 export interface MapState {
   transitData: TransitData | null;
   selectedRouteId: string | null;
+  hoveredRouteId: string | null;
   selectedStopId: string | null;
   userLocation: [number, number] | null;
   flyTarget: FlyTarget | null;
 
   setTransitData: (data: TransitData | null) => void;
   setSelectedRoute: (routeId: string | null) => void;
+  setHoveredRouteId: (routeId: string | null) => void;
+  clearHoveredRouteId: () => void;
   setSelectedStop: (stopId: string | null) => void;
   setUserLocation: (location: [number, number] | null) => void;
   flyTo: (target: Omit<FlyTarget, "token">) => void;
@@ -27,12 +30,15 @@ export interface MapState {
 export const useMapStore = create<MapState>((set) => ({
   transitData: null,
   selectedRouteId: null,
+  hoveredRouteId: null,
   selectedStopId: null,
   userLocation: null,
   flyTarget: null,
 
   setTransitData: (transitData) => set({ transitData }),
   setSelectedRoute: (selectedRouteId) => set({ selectedRouteId }),
+  setHoveredRouteId: (hoveredRouteId) => set({ hoveredRouteId }),
+  clearHoveredRouteId: () => set({ hoveredRouteId: null }),
   setSelectedStop: (selectedStopId) => set({ selectedStopId }),
   setUserLocation: (userLocation) => set({ userLocation }),
   flyTo: (target) =>
