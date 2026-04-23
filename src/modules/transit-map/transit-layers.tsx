@@ -36,7 +36,7 @@ export function TransitLayers() {
   const setSelectedStop = useMapStore((s) => s.setSelectedStop);
   const setHoveredRouteId = useMapStore((s) => s.setHoveredRouteId);
   const clearHoveredRouteId = useMapStore((s) => s.clearHoveredRouteId);
-  const activeCategories = useFilterStore((s) => s.activeCategories);
+  const activeRouteIds = useFilterStore((s) => s.activeRouteIds);
 
   const [hoverPopup, setHoverPopup] = useState<SelectedStop | null>(null);
 
@@ -199,27 +199,28 @@ export function TransitLayers() {
     if (map.getLayer(ROUTES_LAYER_ID)) {
       map.setFilter(ROUTES_LAYER_ID, [
         "in",
-        ["get", "category"],
-        ["literal", activeCategories],
+        ["get", "route_id"],
+        ["literal", activeRouteIds],
       ]);
     }
     if (map.getLayer(STOPS_LAYER_ID)) {
-      if (activeCategories.length === 0) {
-        // No categories active → hide every stop.
+      if (activeRouteIds.length === 0) {
+        // No routes active → hide every stop.
         map.setFilter(STOPS_LAYER_ID, ["==", ["literal", 1], 0]);
       } else {
+        // A stop is shown if ANY of its connecting routes is active.
         const stopFilter = [
           "any",
-          ...activeCategories.map((category) => [
+          ...activeRouteIds.map((id) => [
             "in",
-            category,
-            ["get", "categories"],
+            id,
+            ["get", "connecting_routes"],
           ]),
         ] as unknown as FilterSpecification;
         map.setFilter(STOPS_LAYER_ID, stopFilter);
       }
     }
-  }, [map, isLoaded, activeCategories]);
+  }, [map, isLoaded, activeRouteIds]);
 
   // --- Route hover interactions ---
   useEffect(() => {

@@ -22,23 +22,48 @@ export const CATEGORY_LABELS: Record<RouteCategory, string> = {
 };
 
 export interface FilterState {
-  activeCategories: RouteCategory[];
-  toggleCategory: (category: RouteCategory) => void;
-  setActiveCategories: (categories: RouteCategory[]) => void;
-  resetCategories: () => void;
+  /** Currently visible route IDs. An empty array means *nothing* is shown. */
+  activeRouteIds: string[];
+  /** Whether the store has been hydrated with the full catalog. */
+  initialized: boolean;
+
+  initActiveRoutes: (routeIds: string[]) => void;
+  toggleRoute: (routeId: string) => void;
+  /**
+   * Toggle every route in a category at once.
+   *  - `isSelected=true`  → add all ids (de-duped).
+   *  - `isSelected=false` → remove all ids.
+   */
+  toggleCategory: (categoryRouteIds: string[], isSelected: boolean) => void;
 }
 
 export const useFilterStore = create<FilterState>((set) => ({
-  activeCategories: [...ALL_CATEGORIES],
-  toggleCategory: (category) =>
+  activeRouteIds: [],
+  initialized: false,
+
+  initActiveRoutes: (routeIds) =>
+    set({ activeRouteIds: [...routeIds], initialized: true }),
+
+  toggleRoute: (routeId) =>
     set((state) => {
-      const isActive = state.activeCategories.includes(category);
+      const exists = state.activeRouteIds.includes(routeId);
       return {
-        activeCategories: isActive
-          ? state.activeCategories.filter((c) => c !== category)
-          : [...state.activeCategories, category],
+        activeRouteIds: exists
+          ? state.activeRouteIds.filter((id) => id !== routeId)
+          : [...state.activeRouteIds, routeId],
       };
     }),
-  setActiveCategories: (activeCategories) => set({ activeCategories }),
-  resetCategories: () => set({ activeCategories: [...ALL_CATEGORIES] }),
+
+  toggleCategory: (categoryRouteIds, isSelected) =>
+    set((state) => {
+      if (isSelected) {
+        const next = new Set(state.activeRouteIds);
+        for (const id of categoryRouteIds) next.add(id);
+        return { activeRouteIds: Array.from(next) };
+      }
+      const removed = new Set(categoryRouteIds);
+      return {
+        activeRouteIds: state.activeRouteIds.filter((id) => !removed.has(id)),
+      };
+    }),
 }));

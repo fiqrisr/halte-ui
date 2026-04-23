@@ -378,10 +378,42 @@ function main() {
   const stopsGeoJSON = featureCollection(stopFeatures);
   const hubCount = stopFeatures.filter((f) => f.properties.is_hub).length;
 
+  // Pre-computed catalog used by the sidebar's hierarchical filter UI.
+  // Keyed by category so the frontend doesn't have to group at render time.
+  type CatalogEntry = {
+    route_id: string;
+    route_short_name: string;
+    route_color: string;
+  };
+  const routeCatalog: Record<RouteCategory, CatalogEntry[]> = {
+    brt: [],
+    royaltrans: [],
+    wisata: [],
+    rusun: [],
+    transjabodetabek: [],
+    jaklingko: [],
+    "non-brt": [],
+  };
+  for (const r of routes) {
+    routeCatalog[r.category].push({
+      route_id: r.route_id,
+      route_short_name: r.route_short_name,
+      route_color: r.route_color,
+    });
+  }
+  // Sort each bucket for stable, human-friendly display order.
+  for (const key of Object.keys(routeCatalog) as RouteCategory[]) {
+    routeCatalog[key].sort((a, b) =>
+      a.route_short_name.localeCompare(b.route_short_name, undefined, {
+        numeric: true,
+      }),
+    );
+  }
+
   mkdirSync(dirname(OUT_FILE), { recursive: true });
   writeFileSync(
     OUT_FILE,
-    JSON.stringify({ routes, routesGeoJSON, stopsGeoJSON }),
+    JSON.stringify({ routes, routesGeoJSON, stopsGeoJSON, routeCatalog }),
     "utf-8",
   );
 

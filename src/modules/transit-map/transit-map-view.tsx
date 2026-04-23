@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useFilterStore } from "@/modules/filters/store/filter-store";
 import { fetchTransitData } from "@/modules/gtfs-data/fetch-transit-data";
 import { useMapStore } from "@/modules/transit-map/store/map-store";
 import { Map as MapCanvas, MapControls } from "@/shared/components/ui/map";
@@ -15,13 +16,20 @@ const INITIAL_ZOOM = 11;
 export function TransitMapView() {
   const transitData = useMapStore((s) => s.transitData);
   const setTransitData = useMapStore((s) => s.setTransitData);
+  const initActiveRoutes = useFilterStore((s) => s.initActiveRoutes);
+  const filterInitialized = useFilterStore((s) => s.initialized);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     fetchTransitData()
       .then((d) => {
-        if (!cancelled) setTransitData(d);
+        if (cancelled) return;
+        setTransitData(d);
+        // First-load default: show every route.
+        if (!filterInitialized) {
+          initActiveRoutes(d.routes.map((r) => r.route_id));
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -31,7 +39,7 @@ export function TransitMapView() {
     return () => {
       cancelled = true;
     };
-  }, [setTransitData]);
+  }, [setTransitData, initActiveRoutes, filterInitialized]);
 
   return (
     <div className="relative h-full min-h-[480px] w-full">
