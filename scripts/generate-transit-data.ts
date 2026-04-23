@@ -39,7 +39,14 @@ interface StopTimeRow {
   departure_time: string;
 }
 
-type RouteCategory = "brt" | "non-brt" | "jaklingko";
+type RouteCategory =
+  | "brt"
+  | "royaltrans"
+  | "wisata"
+  | "rusun"
+  | "transjabodetabek"
+  | "jaklingko"
+  | "non-brt";
 
 interface OutputRoute {
   route_id: string;
@@ -50,13 +57,101 @@ interface OutputRoute {
   category: RouteCategory;
 }
 
-// Numeric-only ("1", "13") or numeric + single letter ("13A", "10B").
-const BRT_PATTERN = /^\d+[A-Za-z]?$/;
+// Authoritative short-name lists from Transjakarta's published route catalogue.
+const OFFICIAL_BRT_ROUTES = [
+  "1",
+  "2",
+  "2A",
+  "3",
+  "3F",
+  "3H",
+  "4",
+  "4D",
+  "5",
+  "5C",
+  "6",
+  "6A",
+  "6B",
+  "6V",
+  "7",
+  "7F",
+  "8",
+  "9",
+  "9A",
+  "9C",
+  "9N",
+  "10",
+  "10D",
+  "10H",
+  "11",
+  "12",
+  "13",
+  "13B",
+  "13E",
+  "14",
+  "L13E",
+];
+const ROYALTRANS_ROUTES = [
+  "1K",
+  "1T",
+  "6P",
+  "B13",
+  "B14",
+  "D31",
+  "D32",
+  "S12",
+  "S14",
+  "S31",
+];
+const WISATA_ROUTES = ["BW1", "BW2", "BW4"];
+const RUSUN_ROUTES = [
+  "2F",
+  "2H",
+  "3A",
+  "3B",
+  "3C",
+  "4E",
+  "9F",
+  "10A",
+  "10B",
+  "11B",
+  "11C",
+  "11M",
+  "11P",
+  "11R",
+  "12C",
+  "12F",
+  "12H",
+];
+const TRANSJABODETABEK_ROUTES = [
+  "B11",
+  "B21",
+  "B25",
+  "B41",
+  "B51",
+  "D11",
+  "D21",
+  "D41",
+  "P11",
+  "S11",
+  "S21",
+  "S22",
+  "S61",
+  "SH1",
+  "SH2",
+  "T11",
+  "T12",
+  "T31",
+];
 
 function classifyRoute(routeShortName: string): RouteCategory {
-  const name = (routeShortName ?? "").trim();
-  if (name.toUpperCase().startsWith("JAK")) return "jaklingko";
-  if (BRT_PATTERN.test(name)) return "brt";
+  const nameUpper = (routeShortName ?? "").trim().toUpperCase();
+  if (OFFICIAL_BRT_ROUTES.includes(nameUpper)) return "brt";
+  if (ROYALTRANS_ROUTES.includes(nameUpper)) return "royaltrans";
+  if (WISATA_ROUTES.includes(nameUpper)) return "wisata";
+  if (RUSUN_ROUTES.includes(nameUpper)) return "rusun";
+  if (TRANSJABODETABEK_ROUTES.includes(nameUpper)) return "transjabodetabek";
+  if (nameUpper.startsWith("JAK")) return "jaklingko";
   return "non-brt";
 }
 

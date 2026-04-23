@@ -1,12 +1,24 @@
 import { create } from "zustand";
 import type { RouteCategory } from "@/modules/gtfs-data/types";
 
-export const ALL_CATEGORIES: RouteCategory[] = ["brt", "non-brt", "jaklingko"];
+export const ALL_CATEGORIES: RouteCategory[] = [
+  "brt",
+  "royaltrans",
+  "wisata",
+  "rusun",
+  "transjabodetabek",
+  "jaklingko",
+  "non-brt",
+];
 
 export const CATEGORY_LABELS: Record<RouteCategory, string> = {
   brt: "BRT Corridors",
-  "non-brt": "Non-BRT / Feeders",
+  royaltrans: "RoyalTrans",
+  wisata: "Bus Wisata",
+  rusun: "Mikrotrans Rusun",
+  transjabodetabek: "Transjabodetabek",
   jaklingko: "JakLingko",
+  "non-brt": "Non-BRT / Feeders",
 };
 
 export interface FilterState {

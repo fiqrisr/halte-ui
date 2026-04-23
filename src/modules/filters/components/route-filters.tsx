@@ -12,8 +12,12 @@ import { Checkbox } from "@/shared/components/ui/checkbox";
 
 const CATEGORY_ACCENT: Record<RouteCategory, string> = {
   brt: "bg-red-500",
-  "non-brt": "bg-sky-500",
+  royaltrans: "bg-violet-500",
+  wisata: "bg-amber-500",
+  rusun: "bg-orange-500",
+  transjabodetabek: "bg-blue-500",
   jaklingko: "bg-emerald-500",
+  "non-brt": "bg-sky-500",
 };
 
 export function RouteFilters() {
@@ -22,11 +26,9 @@ export function RouteFilters() {
   const transitData = useMapStore((s) => s.transitData);
 
   const counts = useMemo(() => {
-    const c: Record<RouteCategory, number> = {
-      brt: 0,
-      "non-brt": 0,
-      jaklingko: 0,
-    };
+    const c = Object.fromEntries(
+      ALL_CATEGORIES.map((cat) => [cat, 0]),
+    ) as Record<RouteCategory, number>;
     for (const r of transitData?.routes ?? []) c[r.category]++;
     return c;
   }, [transitData]);

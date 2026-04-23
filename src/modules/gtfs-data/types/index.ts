@@ -1,6 +1,13 @@
 import type { Feature, FeatureCollection, LineString, Point } from "geojson";
 
-export type RouteCategory = "brt" | "non-brt" | "jaklingko";
+export type RouteCategory =
+  | "brt"
+  | "royaltrans"
+  | "wisata"
+  | "rusun"
+  | "transjabodetabek"
+  | "jaklingko"
+  | "non-brt";
 
 export interface Route {
   route_id: string;
