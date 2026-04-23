@@ -1,3 +1,5 @@
+import type { Feature, FeatureCollection, LineString, Point } from "geojson";
+
 export interface Route {
   route_id: string;
   route_short_name: string;
@@ -6,21 +8,27 @@ export interface Route {
   route_text_color: string;
 }
 
-export interface Shape {
+export interface RouteLineProperties {
   shape_id: string;
   route_id: string;
-  coordinates: [number, number][];
+  route_short_name: string;
+  route_long_name: string;
+  route_color: string;
 }
 
-export interface Stop {
+export interface StopProperties {
   stop_id: string;
   stop_name: string;
-  lng: number;
-  lat: number;
 }
+
+export type RouteLineFeature = Feature<LineString, RouteLineProperties>;
+export type StopFeature = Feature<Point, StopProperties>;
+
+export type RoutesGeoJSON = FeatureCollection<LineString, RouteLineProperties>;
+export type StopsGeoJSON = FeatureCollection<Point, StopProperties>;
 
 export interface TransitData {
   routes: Route[];
-  shapes: Shape[];
-  stops: Stop[];
+  routesGeoJSON: RoutesGeoJSON;
+  stopsGeoJSON: StopsGeoJSON;
 }

@@ -1,17 +1,11 @@
 "use client";
 
-import { Loader2, MapPin } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchTransitData } from "@/modules/gtfs-data/fetch-transit-data";
 import type { TransitData } from "@/modules/gtfs-data/types";
-import {
-  Map as MapCanvas,
-  MapControls,
-  MapMarker,
-  MapRoute,
-  MarkerContent,
-  MarkerPopup,
-} from "@/shared/components/ui/map";
+import { Map as MapCanvas, MapControls } from "@/shared/components/ui/map";
+import { TransitLayers } from "./transit-layers";
 
 const JAKARTA_CENTER: [number, number] = [106.8229, -6.1944];
 const INITIAL_ZOOM = 11;
@@ -40,45 +34,12 @@ export function TransitMapView() {
     <div className="relative h-[calc(100vh-4rem)] w-full">
       <MapCanvas center={JAKARTA_CENTER} zoom={INITIAL_ZOOM}>
         <MapControls />
-        {data?.shapes.map((shape) => {
-          const route = data.routes.find((r) => r.route_id === shape.route_id);
-          return (
-            <MapRoute
-              key={shape.shape_id}
-              coordinates={shape.coordinates}
-              color={route?.route_color ?? "#6b7280"}
-              width={3}
-              opacity={0.75}
-            />
-          );
-        })}
-        {data?.stops.map((stop) => (
-          <MapMarker
-            key={stop.stop_id}
-            longitude={stop.lng}
-            latitude={stop.lat}
-          >
-            <MarkerContent>
-              <div className="size-2.5 cursor-pointer rounded-full border-2 border-white bg-foreground shadow-md transition-transform hover:scale-125" />
-            </MarkerContent>
-            <MarkerPopup className="w-60 p-0">
-              <div className="space-y-1 p-3">
-                <p className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
-                  Transjakarta Halte
-                </p>
-                <div className="flex items-start gap-2">
-                  <MapPin className="mt-0.5 size-3.5 text-foreground/60 shrink-0" />
-                  <h3 className="text-foreground text-sm font-semibold leading-snug">
-                    {stop.stop_name}
-                  </h3>
-                </div>
-                <p className="text-muted-foreground pt-1 font-mono text-[10px]">
-                  {stop.lat.toFixed(5)}, {stop.lng.toFixed(5)}
-                </p>
-              </div>
-            </MarkerPopup>
-          </MapMarker>
-        ))}
+        {data && (
+          <TransitLayers
+            routesGeoJSON={data.routesGeoJSON}
+            stopsGeoJSON={data.stopsGeoJSON}
+          />
+        )}
       </MapCanvas>
 
       {!data && !error && (

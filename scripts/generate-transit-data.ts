@@ -1,5 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { featureCollection, lineString, point } from "@turf/helpers";
+import simplify from "@turf/simplify";
 import Papa from "papaparse";
 
 interface RouteRow {
@@ -34,25 +36,12 @@ interface OutputRoute {
   route_text_color: string;
 }
 
-interface OutputShape {
-  shape_id: string;
-  route_id: string;
-  coordinates: [number, number][];
-}
-
-interface OutputStop {
-  stop_id: string;
-  stop_name: string;
-  lng: number;
-  lat: number;
-}
-
 const ROOT = resolve(process.cwd());
 const GTFS_DIR = resolve(ROOT, "data/gtfs");
 const OUT_FILE = resolve(ROOT, "public/api/transit-data.json");
 
-// Keep every Nth shape point to reduce JSON size while preserving the polyline.
-const SHAPE_POINT_STRIDE = 3;
+// Douglas–Peucker tolerance (in degrees) applied to each polyline.
+const SIMPLIFY_TOLERANCE = 0.0001;
 
 function parseCsv<T>(path: string): T[] {
   const raw = readFileSync(path, "utf-8");
@@ -117,7 +106,19 @@ function main() {
     else shapeGroups.set(row.shape_id, [row]);
   }
 
-  const shapes: OutputShape[] = [];
+  type RouteLineProps = {
+    shape_id: string;
+    route_id: string;
+    route_short_name: string;
+    route_long_name: string;
+    route_color: string;
+  };
+
+  const routeFeatures: GeoJSON.Feature<GeoJSON.LineString, RouteLineProps>[] =
+    [];
+  let rawPointCount = 0;
+  let simplifiedPointCount = 0;
+
   for (const [shape_id, rows] of shapeGroups) {
     const matchedRoute = inferRouteFromShapeId(shape_id, routeIndex);
     if (!matchedRoute) continue;
@@ -127,43 +128,65 @@ function main() {
     );
 
     const coordinates: [number, number][] = [];
-    for (let i = 0; i < rows.length; i++) {
-      if (i !== 0 && i !== rows.length - 1 && i % SHAPE_POINT_STRIDE !== 0) {
-        continue;
-      }
-      const lat = Number(rows[i].shape_pt_lat);
-      const lon = Number(rows[i].shape_pt_lon);
+    for (const row of rows) {
+      const lat = Number(row.shape_pt_lat);
+      const lon = Number(row.shape_pt_lon);
       if (Number.isFinite(lat) && Number.isFinite(lon)) {
         coordinates.push([lon, lat]);
       }
     }
+    if (coordinates.length < 2) continue;
 
-    if (coordinates.length >= 2) {
-      shapes.push({
-        shape_id,
-        route_id: matchedRoute.route_id,
-        coordinates,
-      });
-    }
+    rawPointCount += coordinates.length;
+
+    const raw = lineString<RouteLineProps>(coordinates, {
+      shape_id,
+      route_id: matchedRoute.route_id,
+      route_short_name: matchedRoute.route_short_name,
+      route_long_name: matchedRoute.route_long_name,
+      route_color: matchedRoute.route_color,
+    });
+
+    const simplified = simplify(raw, {
+      tolerance: SIMPLIFY_TOLERANCE,
+      highQuality: true,
+      mutate: true,
+    });
+
+    simplifiedPointCount += simplified.geometry.coordinates.length;
+    routeFeatures.push(simplified);
   }
 
-  // Only render top-level stations (location_type=1) to avoid rendering
-  // thousands of individual platform markers.
-  const stops: OutputStop[] = stopRows
+  const routesGeoJSON = featureCollection(routeFeatures);
+
+  // Only emit top-level stations (location_type=1) as stop features.
+  type StopProps = { stop_id: string; stop_name: string };
+  const stopFeatures: GeoJSON.Feature<GeoJSON.Point, StopProps>[] = stopRows
     .filter((s) => s.location_type === "1")
-    .map((s) => ({
-      stop_id: s.stop_id,
-      stop_name: s.stop_name,
-      lng: Number(s.stop_lon),
-      lat: Number(s.stop_lat),
-    }))
-    .filter((s) => Number.isFinite(s.lng) && Number.isFinite(s.lat));
+    .map((s) => {
+      const lng = Number(s.stop_lon);
+      const lat = Number(s.stop_lat);
+      if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+      return point<StopProps>([lng, lat], {
+        stop_id: s.stop_id,
+        stop_name: s.stop_name,
+      });
+    })
+    .filter((f): f is GeoJSON.Feature<GeoJSON.Point, StopProps> => f !== null);
+
+  const stopsGeoJSON = featureCollection(stopFeatures);
 
   mkdirSync(dirname(OUT_FILE), { recursive: true });
-  writeFileSync(OUT_FILE, JSON.stringify({ routes, shapes, stops }), "utf-8");
+  writeFileSync(
+    OUT_FILE,
+    JSON.stringify({ routes, routesGeoJSON, stopsGeoJSON }),
+    "utf-8",
+  );
 
   console.log(
-    `[transit-data] Wrote ${routes.length} routes, ${shapes.length} shapes, ${stops.length} stops -> ${OUT_FILE}`,
+    `[transit-data] Wrote ${routes.length} routes, ${routeFeatures.length} line features (${rawPointCount} -> ${simplifiedPointCount} points, ${(
+      (1 - simplifiedPointCount / Math.max(rawPointCount, 1)) * 100
+    ).toFixed(1)}% reduction), ${stopFeatures.length} stops -> ${OUT_FILE}`,
   );
 }
 
