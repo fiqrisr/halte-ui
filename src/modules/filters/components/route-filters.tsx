@@ -137,7 +137,7 @@ export function RouteFilters() {
                         <li key={entry.route_id}>
                           <label
                             htmlFor={id}
-                            className="hover:bg-muted/50 flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors"
+                            className="hover:bg-muted/50 flex cursor-pointer items-start gap-2.5 rounded-md px-2 py-1.5 transition-colors"
                           >
                             <Checkbox
                               id={id}
@@ -146,15 +146,20 @@ export function RouteFilters() {
                                 toggleRoute(entry.route_id)
                               }
                             />
-                            <span
-                              className="inline-flex min-w-[2.75rem] justify-center rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold tracking-tight"
-                              style={{
-                                backgroundColor: entry.route_color,
-                                color: getContrastText(entry.route_color),
-                              }}
-                            >
-                              {entry.route_short_name}
-                            </span>
+                            <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                              <span
+                                className="inline-flex min-w-[2.75rem] shrink-0 justify-center rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold tracking-tight"
+                                style={{
+                                  backgroundColor: entry.route_color,
+                                  color: getContrastText(entry.route_color),
+                                }}
+                              >
+                                {entry.route_short_name}
+                              </span>
+                              <span className="text-foreground min-w-0 text-sm leading-5 break-words">
+                                {entry.route_long_name}
+                              </span>
+                            </div>
                           </label>
                         </li>
                       );

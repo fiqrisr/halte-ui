@@ -46,6 +46,7 @@ export type StopsGeoJSON = FeatureCollection<Point, StopProperties>;
 export interface RouteCatalogEntry {
   route_id: string;
   route_short_name: string;
+  route_long_name: string;
   route_color: string;
 }
 

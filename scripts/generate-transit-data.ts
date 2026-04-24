@@ -383,6 +383,7 @@ function main() {
   type CatalogEntry = {
     route_id: string;
     route_short_name: string;
+    route_long_name: string;
     route_color: string;
   };
   const routeCatalog: Record<RouteCategory, CatalogEntry[]> = {
@@ -398,6 +399,7 @@ function main() {
     routeCatalog[r.category].push({
       route_id: r.route_id,
       route_short_name: r.route_short_name,
+      route_long_name: r.route_long_name,
       route_color: r.route_color,
     });
   }
