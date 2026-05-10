@@ -2,14 +2,10 @@
 
 import { BusFront, Search, X } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { RouteFilters } from "@/modules/filters/components/route-filters";
 import { useMapStore } from "@/modules/transit-map/store/map-store";
-import { Button } from "@/shared/components/ui/button";
-
-interface MainLayoutProps {
-  children: ReactNode;
-}
+import type { MainLayoutProps } from "@/types";
 
 export function MainLayout({ children }: MainLayoutProps) {
   const selectedRouteId = useMapStore((s) => s.selectedRouteId);

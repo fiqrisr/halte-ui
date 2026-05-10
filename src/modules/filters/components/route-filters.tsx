@@ -2,20 +2,20 @@
 
 import { useMemo } from "react";
 import {
-  ALL_CATEGORIES,
-  CATEGORY_LABELS,
-  useFilterStore,
-} from "@/modules/filters/store/filter-store";
-import type { RouteCategory } from "@/modules/gtfs-data/types";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
-import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/shared/components/ui/accordion";
-import { Checkbox } from "@/shared/components/ui/checkbox";
-import { ScrollArea } from "@/shared/components/ui/scroll-area";
+} from "@/components/ui/accordion";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  ALL_CATEGORIES,
+  CATEGORY_LABELS,
+  useFilterStore,
+} from "@/modules/filters/store/filter-store";
+import { useMapStore } from "@/modules/transit-map/store/map-store";
+import type { RouteCategory } from "@/types";
 
 const CATEGORY_ACCENT: Record<RouteCategory, string> = {
   brt: "bg-red-500",

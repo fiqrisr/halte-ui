@@ -2,7 +2,6 @@
 
 import { Bus, MapPin } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
 import {
   CommandDialog,
   CommandEmpty,
@@ -11,7 +10,8 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/shared/components/ui/command";
+} from "@/components/ui/command";
+import { useMapStore } from "@/modules/transit-map/store/map-store";
 
 export function SearchPalette() {
   const [open, setOpen] = useState(false);

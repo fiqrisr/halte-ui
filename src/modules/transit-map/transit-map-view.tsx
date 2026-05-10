@@ -2,10 +2,10 @@
 
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Map as MapCanvas, MapControls } from "@/components/ui/map";
 import { useFilterStore } from "@/modules/filters/store/filter-store";
 import { fetchTransitData } from "@/modules/gtfs-data/fetch-transit-data";
 import { useMapStore } from "@/modules/transit-map/store/map-store";
-import { Map as MapCanvas, MapControls } from "@/shared/components/ui/map";
 import { LocateFab } from "./components/locate-fab";
 import { StationSheet } from "./components/station-sheet";
 import { TransitLayers } from "./transit-layers";

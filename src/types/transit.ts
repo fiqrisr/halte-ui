@@ -58,3 +58,10 @@ export interface TransitData {
   stopsGeoJSON: StopsGeoJSON;
   routeCatalog: RouteCatalog;
 }
+
+export interface SelectedStop {
+  id: string;
+  name: string;
+  lng: number;
+  lat: number;
+}

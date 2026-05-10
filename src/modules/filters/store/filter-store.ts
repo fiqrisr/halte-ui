@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { RouteCategory } from "@/modules/gtfs-data/types";
+import type { FilterState, RouteCategory } from "@/types";
 
 export const ALL_CATEGORIES: RouteCategory[] = [
   "brt",
@@ -20,22 +20,6 @@ export const CATEGORY_LABELS: Record<RouteCategory, string> = {
   jaklingko: "JakLingko",
   "non-brt": "Non-BRT / Feeders",
 };
-
-export interface FilterState {
-  /** Currently visible route IDs. An empty array means *nothing* is shown. */
-  activeRouteIds: string[];
-  /** Whether the store has been hydrated with the full catalog. */
-  initialized: boolean;
-
-  initActiveRoutes: (routeIds: string[]) => void;
-  toggleRoute: (routeId: string) => void;
-  /**
-   * Toggle every route in a category at once.
-   *  - `isSelected=true`  → add all ids (de-duped).
-   *  - `isSelected=false` → remove all ids.
-   */
-  toggleCategory: (categoryRouteIds: string[], isSelected: boolean) => void;
-}
 
 export const useFilterStore = create<FilterState>((set) => ({
   activeRouteIds: [],

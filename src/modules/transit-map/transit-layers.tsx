@@ -6,9 +6,10 @@ import type { FeatureCollection, LineString } from "geojson";
 import { MapPin } from "lucide-react";
 import type { FilterSpecification, MapMouseEvent } from "maplibre-gl";
 import { useEffect, useMemo, useState } from "react";
+import { MapPopup, useMap } from "@/components/ui/map";
 import { useFilterStore } from "@/modules/filters/store/filter-store";
 import { useMapStore } from "@/modules/transit-map/store/map-store";
-import { MapPopup, useMap } from "@/shared/components/ui/map";
+import type { SelectedStop } from "@/types";
 
 const ROUTES_SOURCE_ID = "transit-routes";
 const ROUTES_LAYER_ID = "transit-routes-line";
@@ -18,13 +19,6 @@ const USER_SOURCE_ID = "user-location";
 const USER_LAYER_ID = "user-location-circle";
 const NEAREST_SOURCE_ID = "nearest-stop-line";
 const NEAREST_LAYER_ID = "nearest-stop-line-layer";
-
-interface SelectedStop {
-  id: string;
-  name: string;
-  lng: number;
-  lat: number;
-}
 
 export function TransitLayers() {
   const { map, isLoaded } = useMap();

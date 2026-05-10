@@ -2,16 +2,16 @@
 
 import { Clock, MapPin, Sunrise, Sunset } from "lucide-react";
 import { useMemo } from "react";
-import type { Route, StopFeature } from "@/modules/gtfs-data/types";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
-import { Button } from "@/shared/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/shared/components/ui/sheet";
+} from "@/components/ui/sheet";
+import { useMapStore } from "@/modules/transit-map/store/map-store";
+import type { Route, StopFeature } from "@/types";
 
 export function StationSheet() {
   const transitData = useMapStore((s) => s.transitData);
@@ -112,7 +112,10 @@ export function StationSheet() {
                         }}
                         title={route?.route_long_name}
                         className="inline-flex h-6 min-w-10 items-center justify-center rounded-full px-2.5 text-[11px] font-semibold shadow-sm transition-transform hover:scale-105"
-                        style={{ backgroundColor: bg, color: fg }}
+                        style={{
+                          backgroundColor: bg,
+                          color: fg,
+                        }}
                       >
                         {label}
                       </button>

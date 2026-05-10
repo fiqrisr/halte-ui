@@ -1,12 +1,11 @@
 "use client";
 
-import MapLibreGL, { type MarkerOptions, type PopupOptions } from "maplibre-gl";
+import MapLibreGL from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Loader2, Locate, Maximize, Minus, Plus, X } from "lucide-react";
 import {
   createContext,
   forwardRef,
-  type ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -18,14 +17,34 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@/lib/utils";
+import type {
+  MapArcDatum,
+  MapArcLineLayout,
+  MapArcLinePaint,
+  MapArcProps,
+  MapClusterLayerProps,
+  MapContextValue,
+  MapControlsProps,
+  MapMarkerProps,
+  MapPopupProps,
+  MapProps,
+  MapRef,
+  MapRouteProps,
+  MapStyleOption,
+  MapViewport,
+  MarkerContentProps,
+  MarkerContextValue,
+  MarkerLabelProps,
+  MarkerPopupProps,
+  MarkerTooltipProps,
+  Theme,
+} from "@/types";
 
 const defaultStyles = {
   dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
   light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
 };
-
-type Theme = "light" | "dark";
 
 // Check document class for theme (works with next-themes, etc.)
 function getDocumentTheme(): Theme | null {
@@ -82,11 +101,6 @@ function useResolvedTheme(themeProp?: "light" | "dark"): Theme {
   return themeProp ?? detectedTheme;
 }
 
-type MapContextValue = {
-  map: MapLibreGL.Map | null;
-  isLoaded: boolean;
-};
-
 const MapContext = createContext<MapContextValue | null>(null);
 
 function useMap() {
@@ -96,53 +110,6 @@ function useMap() {
   }
   return context;
 }
-
-/** Map viewport state */
-type MapViewport = {
-  /** Center coordinates [longitude, latitude] */
-  center: [number, number];
-  /** Zoom level */
-  zoom: number;
-  /** Bearing (rotation) in degrees */
-  bearing: number;
-  /** Pitch (tilt) in degrees */
-  pitch: number;
-};
-
-type MapStyleOption = string | MapLibreGL.StyleSpecification;
-
-type MapRef = MapLibreGL.Map;
-
-type MapProps = {
-  children?: ReactNode;
-  /** Additional CSS classes for the map container */
-  className?: string;
-  /**
-   * Theme for the map. If not provided, automatically detects system preference.
-   * Pass your theme value here.
-   */
-  theme?: Theme;
-  /** Custom map styles for light and dark themes. Overrides the default Carto styles. */
-  styles?: {
-    light?: MapStyleOption;
-    dark?: MapStyleOption;
-  };
-  /** Map projection type. Use `{ type: "globe" }` for 3D globe view. */
-  projection?: MapLibreGL.ProjectionSpecification;
-  /**
-   * Controlled viewport. When provided with onViewportChange,
-   * the map becomes controlled and viewport is driven by this prop.
-   */
-  viewport?: Partial<MapViewport>;
-  /**
-   * Callback fired continuously as the viewport changes (pan, zoom, rotate, pitch).
-   * Can be used standalone to observe changes, or with `viewport` prop
-   * to enable controlled mode where the map viewport is driven by your state.
-   */
-  onViewportChange?: (viewport: MapViewport) => void;
-  /** Show a loading indicator on the map */
-  loading?: boolean;
-} & Omit<MapLibreGL.MapOptions, "container" | "style">;
 
 function DefaultLoader() {
   return (
@@ -166,7 +133,7 @@ function getViewport(map: MapLibreGL.Map): MapViewport {
   };
 }
 
-const Map = forwardRef<MapRef, MapProps>(function Map(
+const MapLibreMap = forwardRef<MapRef, MapProps>(function MapLibreMap(
   {
     children,
     className,
@@ -213,6 +180,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
   }, []);
 
   // Initialize the map
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Complex map lifecycle management with intentional dependencies
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -335,11 +303,6 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
   );
 });
 
-type MarkerContextValue = {
-  marker: MapLibreGL.Marker;
-  map: MapLibreGL.Map | null;
-};
-
 const MarkerContext = createContext<MarkerContextValue | null>(null);
 
 function useMarkerContext() {
@@ -349,27 +312,6 @@ function useMarkerContext() {
   }
   return context;
 }
-
-type MapMarkerProps = {
-  /** Longitude coordinate for marker position */
-  longitude: number;
-  /** Latitude coordinate for marker position */
-  latitude: number;
-  /** Marker subcomponents (MarkerContent, MarkerPopup, MarkerTooltip, MarkerLabel) */
-  children: ReactNode;
-  /** Callback when marker is clicked */
-  onClick?: (e: MouseEvent) => void;
-  /** Callback when mouse enters marker */
-  onMouseEnter?: (e: MouseEvent) => void;
-  /** Callback when mouse leaves marker */
-  onMouseLeave?: (e: MouseEvent) => void;
-  /** Callback when marker drag starts (requires draggable: true) */
-  onDragStart?: (lngLat: { lng: number; lat: number }) => void;
-  /** Callback during marker drag (requires draggable: true) */
-  onDrag?: (lngLat: { lng: number; lat: number }) => void;
-  /** Callback when marker drag ends (requires draggable: true) */
-  onDragEnd?: (lngLat: { lng: number; lat: number }) => void;
-} & Omit<MarkerOptions, "element">;
 
 function MapMarker({
   longitude,
@@ -403,6 +345,7 @@ function MapMarker({
     onDragEnd,
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Marker lifecycle managed internally
   const marker = useMemo(() => {
     const markerInstance = new MapLibreGL.Marker({
       ...markerOptions,
@@ -426,7 +369,10 @@ function MapMarker({
 
     const handleDragStart = () => {
       const lngLat = markerInstance.getLngLat();
-      callbacksRef.current.onDragStart?.({ lng: lngLat.lng, lat: lngLat.lat });
+      callbacksRef.current.onDragStart?.({
+        lng: lngLat.lng,
+        lat: lngLat.lat,
+      });
     };
     const handleDrag = () => {
       const lngLat = markerInstance.getLngLat();
@@ -434,7 +380,10 @@ function MapMarker({
     };
     const handleDragEnd = () => {
       const lngLat = markerInstance.getLngLat();
-      callbacksRef.current.onDragEnd?.({ lng: lngLat.lng, lat: lngLat.lat });
+      callbacksRef.current.onDragEnd?.({
+        lng: lngLat.lng,
+        lat: lngLat.lat,
+      });
     };
 
     markerInstance.on("dragstart", handleDragStart);
@@ -446,6 +395,7 @@ function MapMarker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Marker lifecycle managed internally
   useEffect(() => {
     if (!map) return;
 
@@ -494,13 +444,6 @@ function MapMarker({
   );
 }
 
-type MarkerContentProps = {
-  /** Custom marker content. Defaults to a blue dot if not provided */
-  children?: ReactNode;
-  /** Additional CSS classes for the marker container */
-  className?: string;
-};
-
 function MarkerContent({ children, className }: MarkerContentProps) {
   const { marker } = useMarkerContext();
 
@@ -531,15 +474,6 @@ function PopupCloseButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-type MarkerPopupProps = {
-  /** Popup content */
-  children: ReactNode;
-  /** Additional CSS classes for the popup container */
-  className?: string;
-  /** Show a close button in the popup (default: false) */
-  closeButton?: boolean;
-} & Omit<PopupOptions, "className" | "closeButton">;
-
 function MarkerPopup({
   children,
   className,
@@ -550,6 +484,7 @@ function MarkerPopup({
   const container = useMemo(() => document.createElement("div"), []);
   const prevPopupOptions = useRef(popupOptions);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Popup lifecycle managed internally
   const popup = useMemo(() => {
     const popupInstance = new MapLibreGL.Popup({
       offset: 16,
@@ -563,6 +498,7 @@ function MarkerPopup({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Popup lifecycle managed internally
   useEffect(() => {
     if (!map) return;
 
@@ -605,13 +541,6 @@ function MarkerPopup({
   );
 }
 
-type MarkerTooltipProps = {
-  /** Tooltip content */
-  children: ReactNode;
-  /** Additional CSS classes for the tooltip container */
-  className?: string;
-} & Omit<PopupOptions, "className" | "closeButton" | "closeOnClick">;
-
 function MarkerTooltip({
   children,
   className,
@@ -621,6 +550,7 @@ function MarkerTooltip({
   const container = useMemo(() => document.createElement("div"), []);
   const prevTooltipOptions = useRef(popupOptions);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Tooltip lifecycle managed internally
   const tooltip = useMemo(() => {
     const tooltipInstance = new MapLibreGL.Popup({
       offset: 16,
@@ -633,6 +563,7 @@ function MarkerTooltip({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Tooltip lifecycle managed internally
   useEffect(() => {
     if (!map) return;
 
@@ -681,15 +612,6 @@ function MarkerTooltip({
   );
 }
 
-type MarkerLabelProps = {
-  /** Label text content */
-  children: ReactNode;
-  /** Additional CSS classes for the label */
-  className?: string;
-  /** Position of the label relative to the marker (default: "top") */
-  position?: "top" | "bottom";
-};
-
 function MarkerLabel({
   children,
   className,
@@ -713,23 +635,6 @@ function MarkerLabel({
     </div>
   );
 }
-
-type MapControlsProps = {
-  /** Position of the controls on the map (default: "bottom-right") */
-  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
-  /** Show zoom in/out buttons (default: true) */
-  showZoom?: boolean;
-  /** Show compass button to reset bearing (default: false) */
-  showCompass?: boolean;
-  /** Show locate button to find user's location (default: false) */
-  showLocate?: boolean;
-  /** Show fullscreen toggle button (default: false) */
-  showFullscreen?: boolean;
-  /** Additional CSS classes for the controls container */
-  className?: string;
-  /** Callback with user coordinates when located */
-  onLocate?: (coords: { longitude: number; latitude: number }) => void;
-};
 
 const positionClasses = {
   "top-left": "top-2 left-2",
@@ -916,6 +821,8 @@ function CompassButton({ onClick }: { onClick: () => void }) {
         viewBox="0 0 24 24"
         className="size-5 transition-transform duration-200"
         style={{ transformStyle: "preserve-3d" }}
+        role="img"
+        aria-label="Compass"
       >
         <path d="M12 2L16 12H12V2Z" className="fill-red-500" />
         <path d="M12 2L8 12H12V2Z" className="fill-red-300" />
@@ -925,21 +832,6 @@ function CompassButton({ onClick }: { onClick: () => void }) {
     </ControlButton>
   );
 }
-
-type MapPopupProps = {
-  /** Longitude coordinate for popup position */
-  longitude: number;
-  /** Latitude coordinate for popup position */
-  latitude: number;
-  /** Callback when popup is closed */
-  onClose?: () => void;
-  /** Popup content */
-  children: ReactNode;
-  /** Additional CSS classes for the popup container */
-  className?: string;
-  /** Show a close button in the popup (default: false) */
-  closeButton?: boolean;
-} & Omit<PopupOptions, "className" | "closeButton">;
 
 function MapPopup({
   longitude,
@@ -956,6 +848,7 @@ function MapPopup({
   onCloseRef.current = onClose;
   const container = useMemo(() => document.createElement("div"), []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Popup lifecycle managed internally
   const popup = useMemo(() => {
     const popupInstance = new MapLibreGL.Popup({
       offset: 16,
@@ -969,6 +862,7 @@ function MapPopup({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Popup lifecycle managed internally
   useEffect(() => {
     if (!map) return;
 
@@ -1026,29 +920,6 @@ function MapPopup({
   );
 }
 
-type MapRouteProps = {
-  /** Optional unique identifier for the route layer */
-  id?: string;
-  /** Array of [longitude, latitude] coordinate pairs defining the route */
-  coordinates: [number, number][];
-  /** Line color as CSS color value (default: "#4285F4") */
-  color?: string;
-  /** Line width in pixels (default: 3) */
-  width?: number;
-  /** Line opacity from 0 to 1 (default: 0.8) */
-  opacity?: number;
-  /** Dash pattern [dash length, gap length] for dashed lines */
-  dashArray?: [number, number];
-  /** Callback when the route line is clicked */
-  onClick?: () => void;
-  /** Callback when mouse enters the route line */
-  onMouseEnter?: () => void;
-  /** Callback when mouse leaves the route line */
-  onMouseLeave?: () => void;
-  /** Whether the route is interactive - shows pointer cursor on hover (default: true) */
-  interactive?: boolean;
-};
-
 function MapRoute({
   id: propId,
   coordinates,
@@ -1068,6 +939,7 @@ function MapRoute({
   const layerId = `route-layer-${id}`;
 
   // Add source and layer on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Route layer lifecycle managed internally
   useEffect(() => {
     if (!isLoaded || !map) return;
 
@@ -1166,76 +1038,6 @@ function MapRoute({
 
   return null;
 }
-
-/** A single arc to render inside <MapArc data={...}>. */
-type MapArcDatum = {
-  /** Unique identifier for this arc. Required for hover state tracking and event payloads. */
-  id: string | number;
-  /** Start coordinate as [longitude, latitude]. */
-  from: [number, number];
-  /** End coordinate as [longitude, latitude]. */
-  to: [number, number];
-};
-
-/** Event payload passed to MapArc interaction callbacks. */
-type MapArcEvent<T extends MapArcDatum = MapArcDatum> = {
-  /** The arc datum that was hovered or clicked. */
-  arc: T;
-  /** Longitude of the cursor at the time of the event. */
-  longitude: number;
-  /** Latitude of the cursor at the time of the event. */
-  latitude: number;
-  /** The underlying MapLibre mouse event for advanced use cases. */
-  originalEvent: MapLibreGL.MapMouseEvent;
-};
-
-type MapArcLinePaint = NonNullable<MapLibreGL.LineLayerSpecification["paint"]>;
-type MapArcLineLayout = NonNullable<
-  MapLibreGL.LineLayerSpecification["layout"]
->;
-
-type MapArcProps<T extends MapArcDatum = MapArcDatum> = {
-  /** Array of arcs to render. Each arc must have a unique `id`. */
-  data: T[];
-  /** Optional unique identifier prefix for the arc source/layers. Auto-generated if not provided. */
-  id?: string;
-  /**
-   * How far each arc bows away from a straight line. `0` renders straight
-   * lines; higher values bend further. Negative values bend to the opposite
-   * side. Arcs are computed as a quadratic Bézier in lng/lat space and do not
-   * account for the antimeridian. (default: 0.2)
-   */
-  curvature?: number;
-  /** Number of samples used to render each curve. Higher = smoother. (default: 64) */
-  samples?: number;
-  /**
-   * MapLibre paint properties for the arc layer. Merged on top of sensible
-   * defaults (`line-color: #4285F4`, `line-width: 2`, `line-opacity: 0.85`).
-   * Any value can be a MapLibre expression for per-feature styling, every
-   * field on each arc datum (besides `from`/`to`) is exposed via `["get", ...]`.
-   */
-  paint?: MapArcLinePaint;
-  /** MapLibre layout properties for the arc layer. Defaults to rounded joins/caps. */
-  layout?: MapArcLineLayout;
-  /**
-   * Paint properties applied to the arc currently under the cursor. Each key
-   * is merged into `paint` as a `case` expression keyed on per-feature hover
-   * state, so only the hovered arc changes appearance.
-   */
-  hoverPaint?: MapArcLinePaint;
-  /** Callback when an arc is clicked. */
-  onClick?: (e: MapArcEvent<T>) => void;
-  /**
-   * Callback fired when the hovered arc changes. Receives the cursor's
-   * lng/lat at the moment of entry, and `null` when the cursor leaves the
-   * last hovered arc.
-   */
-  onHover?: (e: MapArcEvent<T> | null) => void;
-  /** Whether arcs respond to mouse events (default: true). */
-  interactive?: boolean;
-  /** Optional MapLibre layer id to insert the arc layers before (z-order control). */
-  beforeId?: string;
-};
 
 const DEFAULT_ARC_CURVATURE = 0.2;
 const DEFAULT_ARC_SAMPLES = 64;
@@ -1366,6 +1168,7 @@ function MapArc<T extends MapArcDatum = MapArcDatum>({
   latestRef.current = { data, onClick, onHover };
 
   // Add source and layers on mount.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Arc layer lifecycle managed internally
   useEffect(() => {
     if (!isLoaded || !map) return;
 
@@ -1523,34 +1326,6 @@ function MapArc<T extends MapArcDatum = MapArcDatum>({
   return null;
 }
 
-type MapClusterLayerProps<
-  P extends GeoJSON.GeoJsonProperties = GeoJSON.GeoJsonProperties,
-> = {
-  /** GeoJSON FeatureCollection data or URL to fetch GeoJSON from */
-  data: string | GeoJSON.FeatureCollection<GeoJSON.Point, P>;
-  /** Maximum zoom level to cluster points on (default: 14) */
-  clusterMaxZoom?: number;
-  /** Radius of each cluster when clustering points in pixels (default: 50) */
-  clusterRadius?: number;
-  /** Colors for cluster circles: [small, medium, large] based on point count (default: ["#22c55e", "#eab308", "#ef4444"]) */
-  clusterColors?: [string, string, string];
-  /** Point count thresholds for color/size steps: [medium, large] (default: [100, 750]) */
-  clusterThresholds?: [number, number];
-  /** Color for unclustered individual points (default: "#3b82f6") */
-  pointColor?: string;
-  /** Callback when an unclustered point is clicked */
-  onPointClick?: (
-    feature: GeoJSON.Feature<GeoJSON.Point, P>,
-    coordinates: [number, number],
-  ) => void;
-  /** Callback when a cluster is clicked. If not provided, zooms into the cluster */
-  onClusterClick?: (
-    clusterId: number,
-    coordinates: [number, number],
-    pointCount: number,
-  ) => void;
-};
-
 function MapClusterLayer<
   P extends GeoJSON.GeoJsonProperties = GeoJSON.GeoJsonProperties,
 >({
@@ -1577,6 +1352,7 @@ function MapClusterLayer<
   });
 
   // Add source and layers on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Cluster layer lifecycle managed internally
   useEffect(() => {
     if (!isLoaded || !map) return;
 
@@ -1711,7 +1487,11 @@ function MapClusterLayer<
       map.setPaintProperty(unclusteredLayerId, "circle-color", pointColor);
     }
 
-    stylePropsRef.current = { clusterColors, clusterThresholds, pointColor };
+    stylePropsRef.current = {
+      clusterColors,
+      clusterThresholds,
+      pointColor,
+    };
   }, [
     isLoaded,
     map,
@@ -1827,18 +1607,18 @@ function MapClusterLayer<
 }
 
 export {
-  Map,
+  MapLibreMap as Map,
   useMap,
   MapMarker,
   MarkerContent,
   MarkerPopup,
+  MapPopup,
   MarkerTooltip,
   MarkerLabel,
-  MapPopup,
   MapControls,
   MapRoute,
   MapArc,
   MapClusterLayer,
 };
 
-export type { MapRef, MapViewport, MapArcDatum, MapArcEvent };
+export type { MapArcDatum, MapArcEvent, MapRef, MapViewport } from "@/types";

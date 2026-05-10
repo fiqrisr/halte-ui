@@ -1,4 +1,4 @@
-import type { TransitData } from "./types";
+import type { TransitData } from "@/types";
 
 const TRANSIT_DATA_URL = "/api/transit-data.json";
 

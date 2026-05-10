@@ -2,8 +2,8 @@
 
 import { Loader2, LocateFixed } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useMapStore } from "@/modules/transit-map/store/map-store";
-import { Button } from "@/shared/components/ui/button";
 
 export function LocateFab() {
   const [busy, setBusy] = useState(false);
