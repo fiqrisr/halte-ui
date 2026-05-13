@@ -40,7 +40,6 @@ export const RouteFilters = () => {
 
   const totalActive = activeRouteIds.length;
   const totalRoutes = transitData?.routes.length ?? 0;
-  console.log(catalog);
 
   if (!catalog) {
     return (
