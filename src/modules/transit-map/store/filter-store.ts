@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import type { FilterState, RouteCategory } from "@/types";
+import type { RouteCategory } from "@/types";
+import type { FilterState } from "../types/store";
 
 export const ALL_CATEGORIES: RouteCategory[] = [
   "brt",

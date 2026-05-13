@@ -1,4 +1,4 @@
-import { TransitMapView } from "@/modules/transit-map/transit-map-view";
+import { TransitMapView } from "@/modules/transit-map";
 
 export default function HomePage() {
   return <TransitMapView />;

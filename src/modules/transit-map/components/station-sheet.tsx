@@ -10,10 +10,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
 import type { Route, StopFeature } from "@/types";
+import { useMapStore } from "../store/map-store";
 
-export function StationSheet() {
+export const StationSheet = () => {
   const transitData = useMapStore((s) => s.transitData);
   const selectedStopId = useMapStore((s) => s.selectedStopId);
   const setSelectedStop = useMapStore((s) => s.setSelectedStop);
@@ -142,9 +142,9 @@ export function StationSheet() {
       </SheetContent>
     </Sheet>
   );
-}
+};
 
-function HoursCard({
+const HoursCard = ({
   icon,
   label,
   value,
@@ -152,7 +152,7 @@ function HoursCard({
   icon: React.ReactNode;
   label: string;
   value: string;
-}) {
+}) => {
   return (
     <div className="bg-muted/40 rounded-md border p-3">
       <div className="text-muted-foreground flex items-center gap-1.5 text-[10px] font-medium tracking-widest uppercase">
@@ -164,4 +164,4 @@ function HoursCard({
       </p>
     </div>
   );
-}
+};

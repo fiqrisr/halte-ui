@@ -1,7 +1,5 @@
 import { create } from "zustand";
-import type { MapState } from "@/types";
-
-export type { FlyTarget } from "@/types";
+import type { MapState } from "../types/store";
 
 export const useMapStore = create<MapState>((set) => ({
   transitData: null,

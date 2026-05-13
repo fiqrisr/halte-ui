@@ -11,9 +11,9 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
+import { useMapStore } from "@/modules/transit-map";
 
-export function SearchPalette() {
+export const SearchPalette = () => {
   const [open, setOpen] = useState(false);
   const transitData = useMapStore((s) => s.transitData);
   const setSelectedRoute = useMapStore((s) => s.setSelectedRoute);
@@ -125,4 +125,4 @@ export function SearchPalette() {
       </CommandList>
     </CommandDialog>
   );
-}
+};

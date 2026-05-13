@@ -1620,5 +1620,3 @@ export {
   MapArc,
   MapClusterLayer,
 };
-
-export type { MapArcDatum, MapArcEvent, MapRef, MapViewport } from "@/types";

@@ -3,17 +3,17 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Map as MapCanvas, MapControls } from "@/components/ui/map";
-import { useFilterStore } from "@/modules/filters/store/filter-store";
-import { fetchTransitData } from "@/modules/gtfs-data/fetch-transit-data";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
-import { LocateFab } from "./components/locate-fab";
-import { StationSheet } from "./components/station-sheet";
+import { fetchTransitData } from "../api/transit-data";
+import { useFilterStore } from "../store/filter-store";
+import { useMapStore } from "../store/map-store";
+import { LocateFab } from "./locate-fab";
+import { StationSheet } from "./station-sheet";
 import { TransitLayers } from "./transit-layers";
 
 const JAKARTA_CENTER: [number, number] = [106.8229, -6.1944];
 const INITIAL_ZOOM = 11;
 
-export function TransitMapView() {
+export const TransitMapView = () => {
   const transitData = useMapStore((s) => s.transitData);
   const setTransitData = useMapStore((s) => s.setTransitData);
   const initActiveRoutes = useFilterStore((s) => s.initActiveRoutes);
@@ -69,4 +69,4 @@ export function TransitMapView() {
       )}
     </div>
   );
-}
+};

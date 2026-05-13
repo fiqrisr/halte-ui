@@ -1,4 +1,4 @@
-import type { TransitData } from "./transit";
+import type { TransitData } from "@/types";
 
 export interface FlyTarget {
   lng: number;

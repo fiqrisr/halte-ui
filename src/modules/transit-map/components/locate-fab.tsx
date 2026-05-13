@@ -3,9 +3,9 @@
 import { Loader2, LocateFixed } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
+import { useMapStore } from "../store/map-store";
 
-export function LocateFab() {
+export const LocateFab = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const setUserLocation = useMapStore((s) => s.setUserLocation);
@@ -56,4 +56,4 @@ export function LocateFab() {
       </Button>
     </div>
   );
-}
+};

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { MainLayout } from "@/modules/layout/components/main-layout";
-import { SearchPalette } from "@/modules/ui-core/components/search-palette";
+import { MainLayout } from "@/layouts/main-layout";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,7 +31,6 @@ export default function RootLayout({
     >
       <body className="bg-neutral-100 text-foreground dark:bg-neutral-900">
         <MainLayout>{children}</MainLayout>
-        <SearchPalette />
       </body>
     </html>
   );

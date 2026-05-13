@@ -9,13 +9,14 @@ import {
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { getContrastText } from "@/lib/utils";
+import type { RouteCategory } from "@/types";
 import {
   ALL_CATEGORIES,
   CATEGORY_LABELS,
   useFilterStore,
-} from "@/modules/filters/store/filter-store";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
-import type { RouteCategory } from "@/types";
+} from "../store/filter-store";
+import { useMapStore } from "../store/map-store";
 
 const CATEGORY_ACCENT: Record<RouteCategory, string> = {
   brt: "bg-red-500",
@@ -27,19 +28,7 @@ const CATEGORY_ACCENT: Record<RouteCategory, string> = {
   "non-brt": "bg-sky-500",
 };
 
-function getContrastText(hex: string): string {
-  const m = /^#?([\da-f]{6})$/i.exec(hex);
-  if (!m) return "#ffffff";
-  const int = Number.parseInt(m[1], 16);
-  const r = (int >> 16) & 0xff;
-  const g = (int >> 8) & 0xff;
-  const b = int & 0xff;
-  // Relative luminance approximation.
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.65 ? "#111827" : "#ffffff";
-}
-
-export function RouteFilters() {
+export const RouteFilters = () => {
   const transitData = useMapStore((s) => s.transitData);
   const activeRouteIds = useFilterStore((s) => s.activeRouteIds);
   const toggleRoute = useFilterStore((s) => s.toggleRoute);
@@ -148,7 +137,7 @@ export function RouteFilters() {
                             />
                             <div className="flex min-w-0 flex-1 items-start gap-2.5">
                               <span
-                                className="inline-flex min-w-[2.75rem] shrink-0 justify-center rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold tracking-tight"
+                                className="inline-flex min-w-11 shrink-0 justify-center rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold tracking-tight"
                                 style={{
                                   backgroundColor: entry.route_color,
                                   color: getContrastText(entry.route_color),
@@ -156,7 +145,7 @@ export function RouteFilters() {
                               >
                                 {entry.route_short_name}
                               </span>
-                              <span className="text-foreground min-w-0 text-sm leading-5 break-words">
+                              <span className="text-foreground min-w-0 text-sm leading-5 wrap-break-word">
                                 {entry.route_long_name}
                               </span>
                             </div>
@@ -173,4 +162,4 @@ export function RouteFilters() {
       </ScrollArea>
     </section>
   );
-}
+};

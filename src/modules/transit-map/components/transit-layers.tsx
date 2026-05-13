@@ -7,9 +7,9 @@ import { MapPin } from "lucide-react";
 import type { FilterSpecification, MapMouseEvent } from "maplibre-gl";
 import { useEffect, useMemo, useState } from "react";
 import { MapPopup, useMap } from "@/components/ui/map";
-import { useFilterStore } from "@/modules/filters/store/filter-store";
-import { useMapStore } from "@/modules/transit-map/store/map-store";
 import type { SelectedStop } from "@/types";
+import { useFilterStore } from "../store/filter-store";
+import { useMapStore } from "../store/map-store";
 
 const ROUTES_SOURCE_ID = "transit-routes";
 const ROUTES_LAYER_ID = "transit-routes-line";
@@ -20,7 +20,7 @@ const USER_LAYER_ID = "user-location-circle";
 const NEAREST_SOURCE_ID = "nearest-stop-line";
 const NEAREST_LAYER_ID = "nearest-stop-line-layer";
 
-export function TransitLayers() {
+export const TransitLayers = () => {
   const { map, isLoaded } = useMap();
   const transitData = useMapStore((s) => s.transitData);
   const selectedRouteId = useMapStore((s) => s.selectedRouteId);
@@ -358,4 +358,4 @@ export function TransitLayers() {
       </div>
     </MapPopup>
   );
-}
+};
