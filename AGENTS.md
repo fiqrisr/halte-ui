@@ -16,7 +16,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Language**: TypeScript (strict mode)
 - **React**: v19
 - **Styling**: Tailwind CSS v4 + `tw-animate-css`
-- **UI Components**: shadcn/ui (new-york style) + mapcn registry
+- **UI Components**: shadcn/ui (new-york style) + custom map component primitives (`src/components/map/`)
 - **Icons**: Lucide React
 - **Map**: MapLibre GL
 - **State Management**: Zustand
@@ -90,13 +90,15 @@ halte-ui/
 ├── src/
 │   ├── app/                # Next.js App Router (pages, layouts, global styles)
 │   ├── components/
-│   │   └── ui/             # shadcn/ui + mapcn primitives (button, card, map, etc.)
+│   │   ├── map/            # Custom MapLibre GL component primitives (Map, Marker, Popup, Route, etc.)
+│   │   └── ui/             # shadcn/ui primitives (button, card, sheet, etc.) with barrel index.ts
+│   ├── hooks/              # Shared React hooks (e.g., useResolvedTheme)
 │   ├── layouts/
 │   │   └── main-layout/    # App shell (sidebar, search palette) with barrel index.ts
 │   ├── lib/                # Shared utilities (e.g., cn(), getContrastText())
 │   ├── modules/
 │   │   └── transit-map/    # Core feature module (map, layers, filters, station sheet)
-│   └── types/              # Shared TypeScript types (barrel via index.ts)
+│   └── types/              # Shared TypeScript types — map.ts, transit.ts, ui.ts, barrel index.ts
 ├── biome.json              # Biome config
 ├── components.json         # shadcn/ui config
 ├── next.config.ts          # Next.js config
@@ -124,7 +126,6 @@ transit-map/
 ├── api/
 │   └── transit-data.ts         # fetchTransitData()
 ├── components/
-│   ├── locate-fab.tsx           # Geolocation FAB
 │   ├── route-filters.tsx        # Category/route filter accordion
 │   ├── station-sheet.tsx        # Station detail bottom sheet
 │   ├── transit-layers.tsx       # MapLibre layers (routes + stops)
@@ -137,6 +138,46 @@ transit-map/
 └── index.ts                     # Barrel exports
 ```
 
+### Map Component Primitives (`src/components/map/`)
+
+Custom MapLibre GL React wrappers. These replace the previous `mapcn` registry dependency:
+
+```
+map/
+├── map.tsx                 # Root <Map> component (MapLibre GL canvas)
+├── map-arc.tsx             # Arc/great-circle line layer
+├── map-cluster-layer.tsx   # Clustered point layer
+├── map-context.ts          # React context for MapLibre map instance
+├── map-controls.tsx        # Navigation / zoom controls
+├── map-marker.tsx          # Custom DOM marker
+├── map-popup.tsx           # MapLibre popup wrapper
+├── map-route.tsx           # GeoJSON route line layer
+├── marker-label.tsx        # Marker label overlay
+├── marker-popup.tsx        # Popup attached to a marker
+├── marker-tooltip.tsx      # Tooltip overlay for markers
+├── popup-close-button.tsx  # Close button for popups
+└── index.ts                # Barrel exports
+```
+
+### Shared Types (`src/types/`)
+
+Type files are split by domain:
+
+```
+types/
+├── map.ts       # MapLibre / map-related types (e.g., Theme)
+├── transit.ts   # GTFS / transit data types (Route, Stop, Trip, etc.)
+├── ui.ts        # UI component prop types
+└── index.ts     # Barrel re-exports
+```
+
+### Shared Hooks (`src/hooks/`)
+
+```
+hooks/
+└── use-resolved-theme.ts   # Detects light/dark theme from document class or system preference
+```
+
 ---
 
 ## Important Notes
@@ -145,4 +186,4 @@ transit-map/
 - **React Compiler** is enabled (`reactCompiler: true` in `next.config.ts`). Do not add manual `useMemo`/`useCallback` unless profiling proves necessity.
 - **Do not add ESLint or Prettier** — Biome handles everything.
 - **shadcn/ui components** in `src/components/ui/` are generated via the shadcn CLI. Edit them if needed but follow existing patterns.
-- **mapcn** registry (`@mapcn`) provides map-specific UI components.
+- **Map primitives** live in `src/components/map/` — custom MapLibre GL React wrappers. Do not re-add the `mapcn` registry; extend these components instead.
