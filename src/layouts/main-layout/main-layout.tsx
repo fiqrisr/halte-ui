@@ -45,7 +45,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               </span>
             </div>
 
-            <div className="space-y-6 overflow-y-auto px-5 pb-6">
+            <div className="space-y-6 px-5 flex flex-col">
               <button
                 type="button"
                 onClick={openSearch}
@@ -81,7 +81,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               )}
             </div>
 
-            <div className="text-muted-foreground mt-auto hidden border-t px-5 py-3 text-[11px] md:block">
+            <div className="text-muted-foreground hidden border-t px-5 py-3 text-[11px] md:block">
               GTFS · Open data · Built with mapcn
             </div>
           </aside>

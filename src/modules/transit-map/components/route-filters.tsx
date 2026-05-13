@@ -64,11 +64,11 @@ export const RouteFilters = () => {
         </span>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-12rem)] -mx-2">
+      <ScrollArea className="h-[calc(100vh-206px)] -mx-2">
         <Accordion
           type="multiple"
           defaultValue={["brt"]}
-          className="flex w-full flex-col gap-1 px-2"
+          className="flex w-full flex-col gap-1 px-2 pb-2"
         >
           {ALL_CATEGORIES.map((category) => {
             const entries = catalog[category] ?? [];
