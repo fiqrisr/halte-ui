@@ -6,7 +6,7 @@ import type { FeatureCollection, LineString } from "geojson";
 import { MapPin } from "lucide-react";
 import type { FilterSpecification, MapMouseEvent } from "maplibre-gl";
 import { useEffect, useMemo, useState } from "react";
-import { MapPopup, useMap } from "@/components/ui/map";
+import { MapPopup, useMap } from "@/components/map";
 import type { SelectedStop } from "@/types";
 import { useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";

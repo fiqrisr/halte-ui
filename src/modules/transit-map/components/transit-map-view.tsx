@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Map as MapCanvas, MapControls } from "@/components/ui/map";
+import { Map as MapCanvas, MapControls } from "@/components/map";
 import { fetchTransitData } from "../api/transit-data";
 import { useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";
