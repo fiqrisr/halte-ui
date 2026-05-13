@@ -348,7 +348,7 @@ export const TransitLayers = () => {
       closeButton={false}
       closeOnClick={false}
       focusAfterOpen={false}
-      className="w-auto max-w-[220px] p-0"
+      className="w-auto max-w-55 p-0"
     >
       <div className="flex items-start gap-2 p-2.5">
         <MapPin className="text-foreground/60 mt-0.5 size-3.5 shrink-0" />
