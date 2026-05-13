@@ -7,8 +7,7 @@ import type {
   StyleSpecification,
 } from "maplibre-gl";
 import type { ReactNode } from "react";
-
-export type Theme = "light" | "dark";
+import type { Theme } from "./ui";
 
 export interface MapContextValue {
   map: maplibregl.Map | null;

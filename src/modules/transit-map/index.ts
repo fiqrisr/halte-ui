@@ -1,5 +1,4 @@
 export { fetchTransitData } from "./api/transit-data";
-export { LocateFab } from "./components/locate-fab";
 export { RouteFilters } from "./components/route-filters";
 export { StationSheet } from "./components/station-sheet";
 export { TransitLayers } from "./components/transit-layers";

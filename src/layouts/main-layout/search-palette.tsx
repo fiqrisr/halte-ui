@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command";
+} from "@/components/ui";
 import { useMapStore } from "@/modules/transit-map";
 
 export const SearchPalette = () => {

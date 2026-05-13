@@ -2,14 +2,14 @@
 
 import { Clock, MapPin, Sunrise, Sunset } from "lucide-react";
 import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@/components/ui";
 import type { Route, StopFeature } from "@/types";
 import { useMapStore } from "../store/map-store";
 

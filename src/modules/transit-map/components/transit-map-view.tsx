@@ -6,7 +6,6 @@ import { Map as MapCanvas, MapControls } from "@/components/map";
 import { fetchTransitData } from "../api/transit-data";
 import { useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";
-import { LocateFab } from "./locate-fab";
 import { StationSheet } from "./station-sheet";
 import { TransitLayers } from "./transit-layers";
 
@@ -16,6 +15,7 @@ const INITIAL_ZOOM = 11;
 export const TransitMapView = () => {
   const transitData = useMapStore((s) => s.transitData);
   const setTransitData = useMapStore((s) => s.setTransitData);
+  const setUserLocation = useMapStore((s) => s.setUserLocation);
   const initActiveRoutes = useFilterStore((s) => s.initActiveRoutes);
   const filterInitialized = useFilterStore((s) => s.initialized);
   const [error, setError] = useState<string | null>(null);
@@ -44,11 +44,18 @@ export const TransitMapView = () => {
   return (
     <div className="relative h-full min-h-[480px] w-full">
       <MapCanvas center={JAKARTA_CENTER} zoom={INITIAL_ZOOM}>
-        <MapControls />
+        <MapControls
+          position="top-right"
+          showZoom
+          showCompass
+          showLocate
+          onLocate={({ longitude, latitude }) =>
+            setUserLocation([longitude, latitude])
+          }
+        />
         <TransitLayers />
       </MapCanvas>
 
-      <LocateFab />
       <StationSheet />
 
       {!transitData && !error && (

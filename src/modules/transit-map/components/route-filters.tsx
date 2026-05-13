@@ -7,9 +7,9 @@ import {
   Accordion,
   AccordionContent,
   AccordionItem,
-} from "@/components/ui/accordion";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  Checkbox,
+  ScrollArea,
+} from "@/components/ui";
 import { getContrastText } from "@/lib/utils";
 import type { RouteCategory } from "@/types";
 import {

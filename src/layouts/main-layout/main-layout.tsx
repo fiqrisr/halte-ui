@@ -2,7 +2,7 @@
 
 import { BusFront, Search, X } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui";
 import { RouteFilters, useMapStore } from "@/modules/transit-map";
 import { SearchPalette } from "./search-palette";
 
