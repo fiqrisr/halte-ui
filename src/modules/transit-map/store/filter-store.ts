@@ -8,7 +8,7 @@ export const ALL_CATEGORIES: RouteCategory[] = [
   "wisata",
   "rusun",
   "transjabodetabek",
-  "jaklingko",
+  "mikrotrans",
   "non-brt",
 ];
 
@@ -16,9 +16,9 @@ export const CATEGORY_LABELS: Record<RouteCategory, string> = {
   brt: "BRT Corridors",
   royaltrans: "RoyalTrans",
   wisata: "Bus Wisata",
-  rusun: "Mikrotrans Rusun",
+  rusun: "Rumah Susun",
   transjabodetabek: "Transjabodetabek",
-  jaklingko: "JakLingko",
+  mikrotrans: "Mikrotrans",
   "non-brt": "Non-BRT / Feeders",
 };
 

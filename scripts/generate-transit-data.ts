@@ -45,7 +45,7 @@ type RouteCategory =
   | "wisata"
   | "rusun"
   | "transjabodetabek"
-  | "jaklingko"
+  | "mikrotrans"
   | "non-brt";
 
 interface OutputRoute {
@@ -151,7 +151,7 @@ function classifyRoute(routeShortName: string): RouteCategory {
   if (WISATA_ROUTES.includes(nameUpper)) return "wisata";
   if (RUSUN_ROUTES.includes(nameUpper)) return "rusun";
   if (TRANSJABODETABEK_ROUTES.includes(nameUpper)) return "transjabodetabek";
-  if (nameUpper.startsWith("JAK")) return "jaklingko";
+  if (nameUpper.startsWith("JAK")) return "mikrotrans";
   return "non-brt";
 }
 
@@ -392,7 +392,7 @@ function main() {
     wisata: [],
     rusun: [],
     transjabodetabek: [],
-    jaklingko: [],
+    mikrotrans: [],
     "non-brt": [],
   };
   for (const r of routes) {

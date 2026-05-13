@@ -1,11 +1,12 @@
 "use client";
 
+import { ChevronDownIcon } from "lucide-react";
+import { Accordion as AccordionPrimitive } from "radix-ui";
 import { useMemo } from "react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,7 +25,7 @@ const CATEGORY_ACCENT: Record<RouteCategory, string> = {
   wisata: "bg-amber-500",
   rusun: "bg-orange-500",
   transjabodetabek: "bg-blue-500",
-  jaklingko: "bg-emerald-500",
+  mikrotrans: "bg-emerald-500",
   "non-brt": "bg-sky-500",
 };
 
@@ -39,6 +40,7 @@ export const RouteFilters = () => {
 
   const totalActive = activeRouteIds.length;
   const totalRoutes = transitData?.routes.length ?? 0;
+  console.log(catalog);
 
   if (!catalog) {
     return (
@@ -86,37 +88,38 @@ export const RouteFilters = () => {
                 value={category}
                 className="border-b-0"
               >
-                <AccordionTrigger className="hover:bg-muted/60 group rounded-md px-2 py-2 hover:no-underline">
-                  <div className="flex flex-1 items-center gap-3">
-                    <Checkbox
-                      checked={allOn ? true : someOn ? "indeterminate" : false}
-                      onCheckedChange={(next) => {
-                        toggleCategory(ids, next === true);
-                      }}
-                      onClick={(e) => {
-                        // Prevent the checkbox toggle from also triggering
-                        // the accordion trigger's expand/collapse.
+                <AccordionPrimitive.Header className="hover:bg-muted/60 flex items-center gap-3 rounded-md px-2 py-2">
+                  <Checkbox
+                    checked={allOn ? true : someOn ? "indeterminate" : false}
+                    onCheckedChange={(next) => {
+                      toggleCategory(ids, next === true);
+                    }}
+                    onClick={(e) => {
+                      // Prevent the checkbox toggle from also triggering
+                      // the accordion trigger's expand/collapse.
+                      e.stopPropagation();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === " " || e.key === "Enter") {
                         e.stopPropagation();
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === " " || e.key === "Enter") {
-                          e.stopPropagation();
-                        }
-                      }}
-                      aria-label={`Toggle all ${CATEGORY_LABELS[category]} routes`}
-                    />
-                    <span
-                      className={`size-2 rounded-full ${CATEGORY_ACCENT[category]}`}
-                      aria-hidden
-                    />
-                    <span className="text-foreground flex-1 text-left text-sm font-medium">
-                      {CATEGORY_LABELS[category]}
-                    </span>
-                    <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
-                      {activeInCat}/{entries.length}
-                    </span>
-                  </div>
-                </AccordionTrigger>
+                      }
+                    }}
+                    aria-label={`Toggle all ${CATEGORY_LABELS[category]} routes`}
+                  />
+                  <span
+                    className={`size-2 rounded-full ${CATEGORY_ACCENT[category]}`}
+                    aria-hidden
+                  />
+                  <span className="text-foreground flex-1 text-left text-sm font-medium">
+                    {CATEGORY_LABELS[category]}
+                  </span>
+                  <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+                    {activeInCat}/{entries.length}
+                  </span>
+                  <AccordionPrimitive.Trigger className="outline-none [&[data-state=open]>svg]:rotate-180">
+                    <ChevronDownIcon className="pointer-events-none size-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+                  </AccordionPrimitive.Trigger>
+                </AccordionPrimitive.Header>
                 <AccordionContent className="pt-1 pb-2 pl-6">
                   <ul className="space-y-0.5">
                     {entries.map((entry) => {

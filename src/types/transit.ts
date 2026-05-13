@@ -6,7 +6,7 @@ export type RouteCategory =
   | "wisata"
   | "rusun"
   | "transjabodetabek"
-  | "jaklingko"
+  | "mikrotrans"
   | "non-brt";
 
 export interface Route {
