@@ -4,7 +4,7 @@ import { BusFront, Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui";
-import { RouteFilters } from "@/modules/transit-map";
+import { RouteFilters, useMapStore } from "@/modules/transit-map";
 import { SearchPalette } from "./search-palette";
 
 export type MainLayoutProps = {
@@ -13,6 +13,9 @@ export type MainLayoutProps = {
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const selectedRouteId = useMapStore((s) => s.selectedRouteId);
+  const selectedStopId = useMapStore((s) => s.selectedStopId);
+  const cardVisible = !!(selectedRouteId || selectedStopId);
 
   const openSearch = () => {
     window.dispatchEvent(
@@ -74,8 +77,10 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         </div>
       </div>
 
-      {/* Mobile bottom floating bar */}
-      <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 px-4 pb-5 md:hidden">
+      {/* Mobile bottom floating bar — hidden when a card panel is open */}
+      <div
+        className={`pointer-events-none fixed bottom-0 left-0 right-0 z-40 px-4 pb-5 md:hidden transition-opacity duration-200 ${cardVisible ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+      >
         <div className="pointer-events-auto flex items-center gap-1 rounded-full border bg-background/95 px-3 py-2 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80">
           <Link href="/" className="flex items-center gap-2 mr-1">
             <span className="bg-foreground text-background flex size-8 shrink-0 items-center justify-center rounded-full">

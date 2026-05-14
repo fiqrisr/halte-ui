@@ -33,10 +33,13 @@ export const DrawerOverlay = ({
 export const DrawerContent = ({
   className,
   children,
+  showOverlay = true,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Content>) => (
+}: React.ComponentProps<typeof DrawerPrimitive.Content> & {
+  showOverlay?: boolean;
+}) => (
   <DrawerPortal>
-    <DrawerOverlay />
+    {showOverlay && <DrawerOverlay />}
     <DrawerPrimitive.Content
       data-slot="drawer-content"
       className={cn(
@@ -45,7 +48,7 @@ export const DrawerContent = ({
       )}
       {...props}
     >
-      <DrawerPrimitive.Handle className="mx-auto mt-4 mb-1 shrink-0 rounded-full bg-muted" />
+      <div className="mx-auto mt-4 mb-1 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>

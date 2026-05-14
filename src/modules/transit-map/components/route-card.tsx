@@ -8,9 +8,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
 } from "@/components/ui";
 import { useMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -88,91 +85,89 @@ export const RouteCard = () => {
       : `#${route.route_text_color}`
     : "";
 
-  // Mobile: render as a bottom Drawer
+  // Mobile: fixed bottom panel — no overlay, reliable height, map stays visible
   if (isMobile) {
+    if (!selectedRouteId || !route) return null;
+
     return (
-      <Drawer
-        open={!!selectedRouteId}
-        onOpenChange={(open) => !open && deselectRoute(disableRoute)}
-      >
-        <DrawerContent>
-          <DrawerTitle className="sr-only">Route Details</DrawerTitle>
-          {route && (
+      <div className="animate-in slide-in-from-bottom fade-in duration-200 pointer-events-auto fixed inset-x-0 bottom-0 z-50 flex h-[45vh] flex-col rounded-t-2xl border bg-background shadow-2xl">
+        <div className="mx-auto mt-3 mb-1 h-1 w-8 shrink-0 rounded-full bg-muted-foreground/20" />
+        <div
+          className="h-1 w-full shrink-0"
+          style={{ backgroundColor: routeColor }}
+        />
+        <div className="flex shrink-0 items-start gap-2 border-b px-4 pt-2.5 pb-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1.5 flex items-center gap-2">
+              <span
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-bold"
+                style={{ backgroundColor: routeColor, color: routeTextColor }}
+              >
+                <Bus className="size-3" />
+                {route.route_short_name}
+              </span>
+              <span className="text-muted-foreground truncate text-[10px] font-medium">
+                {CATEGORY_LABELS[route.category]}
+              </span>
+            </div>
+            <p className="text-sm font-semibold leading-tight">
+              {route.route_long_name}
+            </p>
+            <p className="text-muted-foreground mt-0.5 text-[10px]">
+              {orderedStops.length}{" "}
+              {orderedStops.length === 1 ? "stop" : "stops"}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground -mr-1 size-7 shrink-0"
+            onClick={() => deselectRoute(disableRoute)}
+            aria-label="Close route"
+          >
+            <X className="size-3.5" />
+          </Button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {orderedStops.length === 0 ? (
+            <p className="text-muted-foreground px-4 py-3 text-xs">
+              No stops found for this route.
+            </p>
+          ) : (
             <>
-              <div
-                className="h-1.5 w-full shrink-0"
-                style={{ backgroundColor: routeColor }}
-              />
-              <div className="flex items-start gap-2 border-b px-4 pt-3 pb-3">
-                <div className="min-w-0 flex-1">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span
-                      className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-bold"
-                      style={{
-                        backgroundColor: routeColor,
-                        color: routeTextColor,
-                      }}
-                    >
-                      <Bus className="size-3" />
-                      {route.route_short_name}
-                    </span>
-                    <span className="text-muted-foreground truncate text-[10px] font-medium">
-                      {CATEGORY_LABELS[route.category]}
-                    </span>
-                  </div>
-                  <p className="text-sm font-semibold leading-tight">
-                    {route.route_long_name}
-                  </p>
-                  <p className="text-muted-foreground mt-1 text-[10px]">
-                    {orderedStops.length}{" "}
-                    {orderedStops.length === 1 ? "stop" : "stops"} along this
-                    route
-                  </p>
-                </div>
+              <div className="px-4 pt-2.5 pb-1">
+                <span className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
+                  Stops
+                </span>
               </div>
-              <div className="max-h-[58vh] overflow-y-auto">
-                {orderedStops.length === 0 ? (
-                  <p className="text-muted-foreground px-4 py-3 text-xs">
-                    No stops found for this route.
-                  </p>
-                ) : (
-                  <>
-                    <div className="px-4 pt-3 pb-1.5">
-                      <span className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
-                        Stops
-                      </span>
-                    </div>
-                    <div className="relative px-4 pb-8">
-                      <div
-                        className="absolute top-3 bottom-3 w-px"
-                        style={{
-                          left: "26px",
-                          backgroundColor: routeColor,
-                          opacity: 0.25,
-                        }}
-                      />
-                      <div className="flex flex-col">
-                        {orderedStops.map((stop, idx) => (
-                          <StopRow
-                            key={stop.properties.stop_id}
-                            stop={stop}
-                            routeColor={routeColor}
-                            isFirst={idx === 0}
-                            isLast={idx === orderedStops.length - 1}
-                            onSelect={() =>
-                              selectStop(stop.properties.stop_id, disableRoute)
-                            }
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
+              <div className="relative px-4 pb-6">
+                <div
+                  className="absolute top-3 bottom-3 w-px"
+                  style={{
+                    left: "26px",
+                    backgroundColor: routeColor,
+                    opacity: 0.25,
+                  }}
+                />
+                <div className="flex flex-col">
+                  {orderedStops.map((stop, idx) => (
+                    <StopRow
+                      key={stop.properties.stop_id}
+                      stop={stop}
+                      routeColor={routeColor}
+                      isFirst={idx === 0}
+                      isLast={idx === orderedStops.length - 1}
+                      onSelect={() =>
+                        selectStop(stop.properties.stop_id, disableRoute)
+                      }
+                    />
+                  ))}
+                </div>
               </div>
             </>
           )}
-        </DrawerContent>
-      </Drawer>
+        </div>
+      </div>
     );
   }
 

@@ -8,9 +8,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Drawer,
-  DrawerContent,
-  DrawerTitle,
 } from "@/components/ui";
 import { useMobile } from "@/hooks/use-mobile";
 import type { Route, StopFeature } from "@/types";
@@ -57,98 +54,96 @@ export const StationCard = () => {
     selectRoute(routeId, enableFn);
   };
 
-  // Mobile: render as a bottom Drawer
+  // Mobile: fixed bottom panel — no overlay, reliable height, map stays visible
   if (isMobile) {
+    if (!selectedStopId || !stop) return null;
+
     return (
-      <Drawer
-        open={!!selectedStopId}
-        onOpenChange={(open) => !open && deselectStop()}
-      >
-        <DrawerContent>
-          <DrawerTitle className="sr-only">Station Details</DrawerTitle>
-          {stop && (
-            <>
-              <div className="flex items-start gap-2 border-b px-4 pt-3 pb-3 shrink-0">
-                <div className="min-w-0 flex-1">
-                  <p className="text-muted-foreground mb-1 text-[10px] font-medium tracking-widest uppercase">
-                    Transjakarta Halte
-                  </p>
-                  <p className="text-sm font-semibold leading-tight">
-                    {stop.properties.stop_name}
-                  </p>
-                  <div className="text-muted-foreground mt-1.5 flex items-center gap-1">
-                    <MapPin className="size-3 shrink-0" />
-                    <span className="font-mono text-[10px]">
-                      {(stop.geometry.coordinates[1] as number).toFixed(5)},{" "}
-                      {(stop.geometry.coordinates[0] as number).toFixed(5)}
-                    </span>
+      <div className="animate-in slide-in-from-bottom fade-in duration-200 pointer-events-auto fixed inset-x-0 bottom-0 z-50 flex h-[45vh] flex-col rounded-t-2xl border bg-background shadow-2xl">
+        <div className="mx-auto mt-3 mb-1 h-1 w-8 shrink-0 rounded-full bg-muted-foreground/20" />
+        <div className="flex shrink-0 items-start gap-2 border-b px-4 pt-2.5 pb-2.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-muted-foreground mb-0.5 text-[10px] font-medium tracking-widest uppercase">
+              Transjakarta Halte
+            </p>
+            <p className="text-sm font-semibold leading-tight">
+              {stop.properties.stop_name}
+            </p>
+            <div className="text-muted-foreground mt-1 flex items-center gap-1">
+              <MapPin className="size-3 shrink-0" />
+              <span className="font-mono text-[10px]">
+                {(stop.geometry.coordinates[1] as number).toFixed(5)},{" "}
+                {(stop.geometry.coordinates[0] as number).toFixed(5)}
+              </span>
+              {stop.properties.is_hub && (
+                <span className="ml-1 inline-block bg-foreground text-background rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wider">
+                  HUB
+                </span>
+              )}
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground -mr-1 size-7 shrink-0"
+            onClick={() => deselectStop()}
+            aria-label="Close"
+          >
+            <X className="size-3.5" />
+          </Button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="flex flex-col gap-3 px-4 py-3 pb-6">
+            <div>
+              <div className="text-muted-foreground mb-1.5 flex items-center gap-1.5 text-[10px] font-medium tracking-wide uppercase">
+                <Clock className="size-3" />
+                Operating hours
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-muted/50 rounded-lg border p-2.5">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-1 text-[9px] font-medium tracking-widest uppercase">
+                    <Sunrise className="size-3" /> First bus
                   </div>
-                  {stop.properties.is_hub && (
-                    <span className="mt-1.5 inline-block bg-foreground text-background rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-wider">
-                      HUB
-                    </span>
-                  )}
+                  <p className="font-mono text-sm font-semibold">
+                    {stop.properties.first_bus ?? "—"}
+                  </p>
+                </div>
+                <div className="bg-muted/50 rounded-lg border p-2.5">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-1 text-[9px] font-medium tracking-widest uppercase">
+                    <Sunset className="size-3" /> Last bus
+                  </div>
+                  <p className="font-mono text-sm font-semibold">
+                    {stop.properties.last_bus ?? "—"}
+                  </p>
                 </div>
               </div>
-
-              <div className="max-h-[58vh] overflow-y-auto">
-                <div className="flex flex-col gap-4 px-4 py-3 pb-8">
-                  {/* Operating hours */}
-                  <div>
-                    <div className="text-muted-foreground mb-1.5 flex items-center gap-1.5 text-[10px] font-medium tracking-wide uppercase">
-                      <Clock className="size-3" />
-                      Operating hours
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-muted/50 rounded-lg border p-2.5">
-                        <div className="text-muted-foreground mb-1 flex items-center gap-1 text-[9px] font-medium tracking-widest uppercase">
-                          <Sunrise className="size-3" /> First bus
-                        </div>
-                        <p className="font-mono text-sm font-semibold">
-                          {stop.properties.first_bus ?? "—"}
-                        </p>
-                      </div>
-                      <div className="bg-muted/50 rounded-lg border p-2.5">
-                        <div className="text-muted-foreground mb-1 flex items-center gap-1 text-[9px] font-medium tracking-widest uppercase">
-                          <Sunset className="size-3" /> Last bus
-                        </div>
-                        <p className="font-mono text-sm font-semibold">
-                          {stop.properties.last_bus ?? "—"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Connecting routes */}
-                  <div>
-                    <div className="text-muted-foreground mb-1.5 text-[10px] font-medium tracking-wide uppercase">
-                      Routes ({stop.properties.connecting_routes.length})
-                    </div>
-                    {stop.properties.connecting_routes.length === 0 ? (
-                      <p className="text-muted-foreground text-xs">
-                        No scheduled routes found for this halte.
-                      </p>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        {routeItems?.map(({ routeId, route, bg, fg }) => (
-                          <RouteItem
-                            key={routeId}
-                            route={route}
-                            routeId={routeId}
-                            bg={bg}
-                            fg={fg}
-                            onSelect={() => handleRouteSelect(routeId)}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground mb-1.5 text-[10px] font-medium tracking-wide uppercase">
+                Routes ({stop.properties.connecting_routes.length})
               </div>
-            </>
-          )}
-        </DrawerContent>
-      </Drawer>
+              {stop.properties.connecting_routes.length === 0 ? (
+                <p className="text-muted-foreground text-xs">
+                  No scheduled routes found for this halte.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {routeItems?.map(({ routeId, route, bg, fg }) => (
+                    <RouteItem
+                      key={routeId}
+                      route={route}
+                      routeId={routeId}
+                      bg={bg}
+                      fg={fg}
+                      onSelect={() => handleRouteSelect(routeId)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
