@@ -6,7 +6,8 @@ import { Map as MapCanvas, MapControls } from "@/components/map";
 import { fetchTransitData } from "../api/transit-data";
 import { useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";
-import { StationSheet } from "./station-sheet";
+import { RouteCard } from "./route-card";
+import { StationCard } from "./station-card";
 import { TransitLayers } from "./transit-layers";
 
 const JAKARTA_CENTER: [number, number] = [106.8229, -6.1944];
@@ -56,7 +57,8 @@ export const TransitMapView = () => {
         <TransitLayers />
       </MapCanvas>
 
-      <StationSheet />
+      <StationCard />
+      <RouteCard />
 
       {!transitData && !error && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

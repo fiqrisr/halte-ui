@@ -153,6 +153,45 @@ export const TransitLayers = () => {
     }
   }, [map, isLoaded, routesGeoJSON, stopsGeoJSON]);
 
+  // --- Fit the map to show the full selected route ---
+  useEffect(() => {
+    if (!map || !isLoaded || !routesGeoJSON || !selectedRouteId) return;
+
+    const features = routesGeoJSON.features.filter(
+      (f) => f.properties.route_id === selectedRouteId,
+    );
+    if (!features.length) return;
+
+    let minLng = Infinity;
+    let minLat = Infinity;
+    let maxLng = -Infinity;
+    let maxLat = -Infinity;
+
+    for (const f of features) {
+      for (const [lng, lat] of f.geometry.coordinates) {
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+      }
+    }
+
+    if (!Number.isFinite(minLng)) return;
+
+    // Left padding accounts for the route card overlay (288 px wide + margins).
+    map.fitBounds(
+      [
+        [minLng, minLat],
+        [maxLng, maxLat],
+      ],
+      {
+        padding: { top: 60, bottom: 60, left: 316, right: 60 },
+        duration: 1200,
+        maxZoom: 14,
+      },
+    );
+  }, [map, isLoaded, selectedRouteId, routesGeoJSON]);
+
   // --- Data-driven paint: Focus Mode + Hover Highlight ---
   // Rules:
   //  1. If a route is selected: matching -> 1.0 / 6px, others -> 0.1 / 2px.
