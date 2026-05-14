@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { MainLayout } from "@/layouts/main-layout";
@@ -91,7 +92,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="bg-neutral-100 text-foreground dark:bg-neutral-900">
-        <MainLayout>{children}</MainLayout>
+        <MainLayout>
+          {children}
+          <Analytics />
+        </MainLayout>
       </body>
     </html>
   );
