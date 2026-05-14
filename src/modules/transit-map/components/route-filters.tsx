@@ -53,8 +53,8 @@ export const RouteFilters = () => {
   }
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
+    <section className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex shrink-0 items-center justify-between">
         <h2 className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
           Route Filters
         </h2>
@@ -63,7 +63,7 @@ export const RouteFilters = () => {
         </span>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-206px)] -mx-2">
+      <ScrollArea className="min-h-0 flex-1 -mx-2">
         <Accordion
           type="multiple"
           defaultValue={["brt"]}

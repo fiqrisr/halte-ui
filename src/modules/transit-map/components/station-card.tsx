@@ -8,12 +8,17 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
 } from "@/components/ui";
+import { useMobile } from "@/hooks/use-mobile";
 import type { Route, StopFeature } from "@/types";
 import { useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";
 
 export const StationCard = () => {
+  const isMobile = useMobile();
   const transitData = useMapStore((s) => s.transitData);
   const selectedStopId = useMapStore((s) => s.selectedStopId);
   const deselectStop = useMapStore((s) => s.deselectStop);
@@ -34,6 +39,120 @@ export const StationCard = () => {
     return map;
   }, [transitData]);
 
+  const routeItems = stop?.properties.connecting_routes.map((routeId) => {
+    const route = routesById.get(routeId);
+    const bg = route?.route_color
+      ? `#${route.route_color.replace(/^#/, "")}`
+      : "#6b7280";
+    const fg = route?.route_text_color
+      ? `#${route.route_text_color.replace(/^#/, "")}`
+      : "#ffffff";
+    return { routeId, route, bg, fg };
+  });
+
+  const handleRouteSelect = (routeId: string) => {
+    const enableFn = !activeRouteIds.includes(routeId)
+      ? enableRoute
+      : undefined;
+    selectRoute(routeId, enableFn);
+  };
+
+  // Mobile: render as a bottom Drawer
+  if (isMobile) {
+    return (
+      <Drawer
+        open={!!selectedStopId}
+        onOpenChange={(open) => !open && deselectStop()}
+      >
+        <DrawerContent>
+          <DrawerTitle className="sr-only">Station Details</DrawerTitle>
+          {stop && (
+            <>
+              <div className="flex items-start gap-2 border-b px-4 pt-3 pb-3 shrink-0">
+                <div className="min-w-0 flex-1">
+                  <p className="text-muted-foreground mb-1 text-[10px] font-medium tracking-widest uppercase">
+                    Transjakarta Halte
+                  </p>
+                  <p className="text-sm font-semibold leading-tight">
+                    {stop.properties.stop_name}
+                  </p>
+                  <div className="text-muted-foreground mt-1.5 flex items-center gap-1">
+                    <MapPin className="size-3 shrink-0" />
+                    <span className="font-mono text-[10px]">
+                      {(stop.geometry.coordinates[1] as number).toFixed(5)},{" "}
+                      {(stop.geometry.coordinates[0] as number).toFixed(5)}
+                    </span>
+                  </div>
+                  {stop.properties.is_hub && (
+                    <span className="mt-1.5 inline-block bg-foreground text-background rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-wider">
+                      HUB
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="max-h-[58vh] overflow-y-auto">
+                <div className="flex flex-col gap-4 px-4 py-3 pb-8">
+                  {/* Operating hours */}
+                  <div>
+                    <div className="text-muted-foreground mb-1.5 flex items-center gap-1.5 text-[10px] font-medium tracking-wide uppercase">
+                      <Clock className="size-3" />
+                      Operating hours
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-muted/50 rounded-lg border p-2.5">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-1 text-[9px] font-medium tracking-widest uppercase">
+                          <Sunrise className="size-3" /> First bus
+                        </div>
+                        <p className="font-mono text-sm font-semibold">
+                          {stop.properties.first_bus ?? "—"}
+                        </p>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg border p-2.5">
+                        <div className="text-muted-foreground mb-1 flex items-center gap-1 text-[9px] font-medium tracking-widest uppercase">
+                          <Sunset className="size-3" /> Last bus
+                        </div>
+                        <p className="font-mono text-sm font-semibold">
+                          {stop.properties.last_bus ?? "—"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Connecting routes */}
+                  <div>
+                    <div className="text-muted-foreground mb-1.5 text-[10px] font-medium tracking-wide uppercase">
+                      Routes ({stop.properties.connecting_routes.length})
+                    </div>
+                    {stop.properties.connecting_routes.length === 0 ? (
+                      <p className="text-muted-foreground text-xs">
+                        No scheduled routes found for this halte.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {routeItems?.map(({ routeId, route, bg, fg }) => (
+                          <RouteItem
+                            key={routeId}
+                            route={route}
+                            routeId={routeId}
+                            bg={bg}
+                            fg={fg}
+                            onSelect={() => handleRouteSelect(routeId)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  // Desktop: absolute-positioned card
   if (!stop) return null;
 
   return (
@@ -112,31 +231,16 @@ export const StationCard = () => {
             ) : (
               <div className="max-h-52 overflow-y-auto">
                 <div className="flex flex-col gap-2 pb-0.5 pr-1">
-                  {stop.properties.connecting_routes.map((routeId) => {
-                    const route = routesById.get(routeId);
-                    const bg = route?.route_color
-                      ? `#${route.route_color.replace(/^#/, "")}`
-                      : "#6b7280";
-                    const fg = route?.route_text_color
-                      ? `#${route.route_text_color.replace(/^#/, "")}`
-                      : "#ffffff";
-
-                    return (
-                      <RouteItem
-                        key={routeId}
-                        route={route}
-                        routeId={routeId}
-                        bg={bg}
-                        fg={fg}
-                        onSelect={() => {
-                          const enableFn = !activeRouteIds.includes(routeId)
-                            ? enableRoute
-                            : undefined;
-                          selectRoute(routeId, enableFn);
-                        }}
-                      />
-                    );
-                  })}
+                  {routeItems?.map(({ routeId, route, bg, fg }) => (
+                    <RouteItem
+                      key={routeId}
+                      route={route}
+                      routeId={routeId}
+                      bg={bg}
+                      fg={fg}
+                      onSelect={() => handleRouteSelect(routeId)}
+                    />
+                  ))}
                 </div>
               </div>
             )}

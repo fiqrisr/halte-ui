@@ -8,13 +8,18 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
 } from "@/components/ui";
+import { useMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import type { RouteLineFeature, StopFeature } from "@/types";
 import { CATEGORY_LABELS, useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";
 
 export const RouteCard = () => {
+  const isMobile = useMobile();
   const transitData = useMapStore((s) => s.transitData);
   const selectedRouteId = useMapStore((s) => s.selectedRouteId);
   const deselectRoute = useMapStore((s) => s.deselectRoute);
@@ -72,14 +77,107 @@ export const RouteCard = () => {
       .map((s) => s.stop);
   }, [transitData, selectedRouteId, routeFeatures]);
 
-  if (!route || !selectedRouteId) return null;
+  const routeColor = route
+    ? route.route_color.startsWith("#")
+      ? route.route_color
+      : `#${route.route_color}`
+    : "";
+  const routeTextColor = route
+    ? route.route_text_color.startsWith("#")
+      ? route.route_text_color
+      : `#${route.route_text_color}`
+    : "";
 
-  const routeColor = route.route_color.startsWith("#")
-    ? route.route_color
-    : `#${route.route_color}`;
-  const routeTextColor = route.route_text_color.startsWith("#")
-    ? route.route_text_color
-    : `#${route.route_text_color}`;
+  // Mobile: render as a bottom Drawer
+  if (isMobile) {
+    return (
+      <Drawer
+        open={!!selectedRouteId}
+        onOpenChange={(open) => !open && deselectRoute(disableRoute)}
+      >
+        <DrawerContent>
+          <DrawerTitle className="sr-only">Route Details</DrawerTitle>
+          {route && (
+            <>
+              <div
+                className="h-1.5 w-full shrink-0"
+                style={{ backgroundColor: routeColor }}
+              />
+              <div className="flex items-start gap-2 border-b px-4 pt-3 pb-3">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex items-center gap-2">
+                    <span
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-bold"
+                      style={{
+                        backgroundColor: routeColor,
+                        color: routeTextColor,
+                      }}
+                    >
+                      <Bus className="size-3" />
+                      {route.route_short_name}
+                    </span>
+                    <span className="text-muted-foreground truncate text-[10px] font-medium">
+                      {CATEGORY_LABELS[route.category]}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold leading-tight">
+                    {route.route_long_name}
+                  </p>
+                  <p className="text-muted-foreground mt-1 text-[10px]">
+                    {orderedStops.length}{" "}
+                    {orderedStops.length === 1 ? "stop" : "stops"} along this
+                    route
+                  </p>
+                </div>
+              </div>
+              <div className="max-h-[58vh] overflow-y-auto">
+                {orderedStops.length === 0 ? (
+                  <p className="text-muted-foreground px-4 py-3 text-xs">
+                    No stops found for this route.
+                  </p>
+                ) : (
+                  <>
+                    <div className="px-4 pt-3 pb-1.5">
+                      <span className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
+                        Stops
+                      </span>
+                    </div>
+                    <div className="relative px-4 pb-8">
+                      <div
+                        className="absolute top-3 bottom-3 w-px"
+                        style={{
+                          left: "26px",
+                          backgroundColor: routeColor,
+                          opacity: 0.25,
+                        }}
+                      />
+                      <div className="flex flex-col">
+                        {orderedStops.map((stop, idx) => (
+                          <StopRow
+                            key={stop.properties.stop_id}
+                            stop={stop}
+                            routeColor={routeColor}
+                            isFirst={idx === 0}
+                            isLast={idx === orderedStops.length - 1}
+                            onSelect={() =>
+                              selectStop(stop.properties.stop_id, disableRoute)
+                            }
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  // Desktop: absolute-positioned card
+  if (!route || !selectedRouteId) return null;
 
   return (
     <div className="pointer-events-auto absolute top-4 left-4 z-60 w-72">
