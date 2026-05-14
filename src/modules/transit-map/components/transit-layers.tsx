@@ -7,6 +7,7 @@ import { MapPin } from "lucide-react";
 import type { FilterSpecification, MapMouseEvent } from "maplibre-gl";
 import { useEffect, useMemo, useState } from "react";
 import { MapPopup, useMap } from "@/components/map";
+import { useMobile } from "@/hooks/use-mobile";
 import type { SelectedStop } from "@/types";
 import { useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";
@@ -21,6 +22,7 @@ const NEAREST_SOURCE_ID = "nearest-stop-line";
 const NEAREST_LAYER_ID = "nearest-stop-line-layer";
 
 export const TransitLayers = () => {
+  const isMobile = useMobile();
   const { map, isLoaded } = useMap();
   const transitData = useMapStore((s) => s.transitData);
   const selectedRouteId = useMapStore((s) => s.selectedRouteId);
@@ -180,19 +182,19 @@ export const TransitLayers = () => {
 
     if (!Number.isFinite(minLng)) return;
 
-    // Left padding accounts for the route card overlay (288 px wide + margins).
+    // Desktop: left padding offsets the route card overlay (288px + margins).
+    // Mobile: no left card, but extra bottom padding for the Drawer sheet.
+    const padding = isMobile
+      ? { top: 60, bottom: 280, left: 40, right: 40 }
+      : { top: 60, bottom: 60, left: 316, right: 60 };
     map.fitBounds(
       [
         [minLng, minLat],
         [maxLng, maxLat],
       ],
-      {
-        padding: { top: 60, bottom: 60, left: 316, right: 60 },
-        duration: 1200,
-        maxZoom: 14,
-      },
+      { padding, duration: 1200, maxZoom: 14 },
     );
-  }, [map, isLoaded, selectedRouteId, routesGeoJSON]);
+  }, [map, isLoaded, selectedRouteId, routesGeoJSON, isMobile]);
 
   // --- Data-driven paint: Focus Mode + Hover Highlight ---
   // Rules:
