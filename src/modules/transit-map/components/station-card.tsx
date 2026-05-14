@@ -10,13 +10,16 @@ import {
   CardTitle,
 } from "@/components/ui";
 import type { Route, StopFeature } from "@/types";
+import { useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";
 
 export const StationCard = () => {
   const transitData = useMapStore((s) => s.transitData);
   const selectedStopId = useMapStore((s) => s.selectedStopId);
-  const setSelectedStop = useMapStore((s) => s.setSelectedStop);
-  const setSelectedRoute = useMapStore((s) => s.setSelectedRoute);
+  const deselectStop = useMapStore((s) => s.deselectStop);
+  const selectRoute = useMapStore((s) => s.selectRoute);
+  const activeRouteIds = useFilterStore((s) => s.activeRouteIds);
+  const enableRoute = useFilterStore((s) => s.enableRoute);
 
   const stop: StopFeature | undefined = useMemo(() => {
     if (!transitData || !selectedStopId) return undefined;
@@ -57,7 +60,7 @@ export const StationCard = () => {
             variant="ghost"
             size="icon"
             className="text-muted-foreground hover:text-foreground -mr-1 -mt-1 size-7 shrink-0"
-            onClick={() => setSelectedStop(null)}
+            onClick={() => deselectStop()}
             aria-label="Close"
           >
             <X className="size-3.5" />
@@ -125,7 +128,12 @@ export const StationCard = () => {
                         routeId={routeId}
                         bg={bg}
                         fg={fg}
-                        onSelect={() => setSelectedRoute(routeId)}
+                        onSelect={() => {
+                          const enableFn = !activeRouteIds.includes(routeId)
+                            ? enableRoute
+                            : undefined;
+                          selectRoute(routeId, enableFn);
+                        }}
                       />
                     );
                   })}

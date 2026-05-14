@@ -51,4 +51,15 @@ export const useFilterStore = create<FilterState>((set) => ({
         activeRouteIds: state.activeRouteIds.filter((id) => !removed.has(id)),
       };
     }),
+
+  enableRoute: (routeId) =>
+    set((state) => {
+      if (state.activeRouteIds.includes(routeId)) return {};
+      return { activeRouteIds: [...state.activeRouteIds, routeId] };
+    }),
+
+  disableRoute: (routeId) =>
+    set((state) => ({
+      activeRouteIds: state.activeRouteIds.filter((id) => id !== routeId),
+    })),
 }));

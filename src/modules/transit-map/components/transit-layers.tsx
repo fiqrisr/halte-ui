@@ -27,10 +27,12 @@ export const TransitLayers = () => {
   const hoveredRouteId = useMapStore((s) => s.hoveredRouteId);
   const userLocation = useMapStore((s) => s.userLocation);
   const flyTarget = useMapStore((s) => s.flyTarget);
-  const setSelectedStop = useMapStore((s) => s.setSelectedStop);
+  const selectRoute = useMapStore((s) => s.selectRoute);
+  const selectStop = useMapStore((s) => s.selectStop);
   const setHoveredRouteId = useMapStore((s) => s.setHoveredRouteId);
   const clearHoveredRouteId = useMapStore((s) => s.clearHoveredRouteId);
   const activeRouteIds = useFilterStore((s) => s.activeRouteIds);
+  const disableRoute = useFilterStore((s) => s.disableRoute);
 
   const [hoverPopup, setHoverPopup] = useState<SelectedStop | null>(null);
 
@@ -274,15 +276,27 @@ export const TransitLayers = () => {
       clearHoveredRouteId();
       map.getCanvas().style.cursor = "";
     };
+    const handleClick = (e: MapMouseEvent) => {
+      const feature = map.queryRenderedFeatures(e.point, {
+        layers: [ROUTES_LAYER_ID],
+      })[0];
+      if (!feature) return;
+      const props = feature.properties as { route_id?: string };
+      if (props.route_id) {
+        selectRoute(props.route_id);
+      }
+    };
 
     map.on("mousemove", ROUTES_LAYER_ID, handleMove);
     map.on("mouseleave", ROUTES_LAYER_ID, handleLeave);
+    map.on("click", ROUTES_LAYER_ID, handleClick);
 
     return () => {
       map.off("mousemove", ROUTES_LAYER_ID, handleMove);
       map.off("mouseleave", ROUTES_LAYER_ID, handleLeave);
+      map.off("click", ROUTES_LAYER_ID, handleClick);
     };
-  }, [map, isLoaded, setHoveredRouteId, clearHoveredRouteId]);
+  }, [map, isLoaded, setHoveredRouteId, clearHoveredRouteId, selectRoute]);
 
   // --- User location + nearest-stop dashed line ---
   const nearestLine = useMemo<FeatureCollection<LineString> | null>(() => {
@@ -350,7 +364,7 @@ export const TransitLayers = () => {
         return;
       }
       const props = feature.properties as { stop_id: string };
-      setSelectedStop(props.stop_id);
+      selectStop(props.stop_id, disableRoute);
       setHoverPopup(null);
     };
 
@@ -365,7 +379,7 @@ export const TransitLayers = () => {
       map.off("mouseleave", STOPS_LAYER_ID, handleMouseLeave);
       map.off("click", STOPS_LAYER_ID, handleClick);
     };
-  }, [map, isLoaded, setSelectedStop]);
+  }, [map, isLoaded, selectStop, disableRoute]);
 
   // --- FlyTo driven by the store ---
   useEffect(() => {

@@ -1,9 +1,8 @@
 "use client";
 
-import { BusFront, Search, X } from "lucide-react";
+import { BusFront, Search } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui";
-import { RouteFilters, useMapStore } from "@/modules/transit-map";
+import { RouteFilters } from "@/modules/transit-map";
 import { SearchPalette } from "./search-palette";
 
 export type MainLayoutProps = {
@@ -11,9 +10,6 @@ export type MainLayoutProps = {
 };
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
-  const selectedRouteId = useMapStore((s) => s.selectedRouteId);
-  const setSelectedRoute = useMapStore((s) => s.setSelectedRoute);
-
   const openSearch = () => {
     window.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -59,26 +55,6 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               </button>
 
               <RouteFilters />
-
-              {selectedRouteId && (
-                <div className="bg-muted/50 space-y-2 rounded-md border p-3">
-                  <p className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
-                    Focus mode active
-                  </p>
-                  <p className="text-foreground font-mono text-xs">
-                    {selectedRouteId}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSelectedRoute(null)}
-                    className="h-8 w-full gap-1.5"
-                  >
-                    <X className="size-3.5" />
-                    Exit focus
-                  </Button>
-                </div>
-              )}
             </div>
 
             <div className="text-muted-foreground hidden border-t px-5 py-3 text-[11px] md:block">

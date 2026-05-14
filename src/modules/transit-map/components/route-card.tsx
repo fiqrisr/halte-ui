@@ -11,14 +11,15 @@ import {
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import type { RouteLineFeature, StopFeature } from "@/types";
-import { CATEGORY_LABELS } from "../store/filter-store";
+import { CATEGORY_LABELS, useFilterStore } from "../store/filter-store";
 import { useMapStore } from "../store/map-store";
 
 export const RouteCard = () => {
   const transitData = useMapStore((s) => s.transitData);
   const selectedRouteId = useMapStore((s) => s.selectedRouteId);
-  const setSelectedRoute = useMapStore((s) => s.setSelectedRoute);
-  const setSelectedStop = useMapStore((s) => s.setSelectedStop);
+  const deselectRoute = useMapStore((s) => s.deselectRoute);
+  const selectStop = useMapStore((s) => s.selectStop);
+  const disableRoute = useFilterStore((s) => s.disableRoute);
 
   const route = useMemo(() => {
     if (!transitData || !selectedRouteId) return undefined;
@@ -116,7 +117,7 @@ export const RouteCard = () => {
             variant="ghost"
             size="icon"
             className="text-muted-foreground hover:text-foreground -mr-1 -mt-0.5 size-7 shrink-0"
-            onClick={() => setSelectedRoute(null)}
+            onClick={() => deselectRoute(disableRoute)}
             aria-label="Close route"
           >
             <X className="size-3.5" />
@@ -157,7 +158,7 @@ export const RouteCard = () => {
                         isFirst={idx === 0}
                         isLast={idx === orderedStops.length - 1}
                         onSelect={() =>
-                          setSelectedStop(stop.properties.stop_id)
+                          selectStop(stop.properties.stop_id, disableRoute)
                         }
                       />
                     ))}

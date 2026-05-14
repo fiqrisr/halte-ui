@@ -12,17 +12,19 @@ export interface MapState {
   selectedRouteId: string | null;
   hoveredRouteId: string | null;
   selectedStopId: string | null;
+  tempEnabledRouteId: string | null;
   userLocation: [number, number] | null;
   flyTarget: FlyTarget | null;
 
   setTransitData: (data: TransitData | null) => void;
-  setSelectedRoute: (routeId: string | null) => void;
   setHoveredRouteId: (routeId: string | null) => void;
   clearHoveredRouteId: () => void;
-  setSelectedStop: (stopId: string | null) => void;
   setUserLocation: (location: [number, number] | null) => void;
   flyTo: (target: Omit<FlyTarget, "token">) => void;
-  clearSelection: () => void;
+  selectRoute: (routeId: string, disableFn?: (id: string) => void) => void;
+  deselectRoute: (disableFn?: (id: string) => void) => void;
+  selectStop: (stopId: string, disableFn?: (id: string) => void) => void;
+  deselectStop: () => void;
 }
 
 export interface FilterState {
@@ -32,4 +34,6 @@ export interface FilterState {
   initActiveRoutes: (routeIds: string[]) => void;
   toggleRoute: (routeId: string) => void;
   toggleCategory: (categoryRouteIds: string[], isSelected: boolean) => void;
+  enableRoute: (routeId: string) => void;
+  disableRoute: (routeId: string) => void;
 }

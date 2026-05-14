@@ -16,8 +16,8 @@ import { useMapStore } from "@/modules/transit-map";
 export const SearchPalette = () => {
   const [open, setOpen] = useState(false);
   const transitData = useMapStore((s) => s.transitData);
-  const setSelectedRoute = useMapStore((s) => s.setSelectedRoute);
-  const setSelectedStop = useMapStore((s) => s.setSelectedStop);
+  const selectRoute = useMapStore((s) => s.selectRoute);
+  const selectStop = useMapStore((s) => s.selectStop);
   const flyTo = useMapStore((s) => s.flyTo);
 
   useEffect(() => {
@@ -71,8 +71,7 @@ export const SearchPalette = () => {
                 key={`stop-${stop.properties.stop_id}`}
                 value={`halte ${stop.properties.stop_name}`}
                 onSelect={() => {
-                  setSelectedRoute(null);
-                  setSelectedStop(stop.properties.stop_id);
+                  selectStop(stop.properties.stop_id);
                   flyTo({ lng, lat, zoom: 15 });
                   setOpen(false);
                 }}
@@ -99,8 +98,7 @@ export const SearchPalette = () => {
                 key={`route-${route.route_id}`}
                 value={`route ${route.route_short_name} ${route.route_long_name}`}
                 onSelect={() => {
-                  setSelectedStop(null);
-                  setSelectedRoute(route.route_id);
+                  selectRoute(route.route_id);
                   if (center) {
                     flyTo({ lng: center[0], lat: center[1], zoom: 12 });
                   }
