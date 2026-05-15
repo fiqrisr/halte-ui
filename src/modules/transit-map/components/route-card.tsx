@@ -90,10 +90,9 @@ export const RouteCard = () => {
     if (!selectedRouteId || !route) return null;
 
     return (
-      <div className="animate-in slide-in-from-bottom fade-in duration-200 pointer-events-auto fixed inset-x-0 bottom-0 z-50 flex h-[45vh] flex-col rounded-t-2xl border bg-background shadow-2xl">
-        <div className="mx-auto mt-3 mb-1 h-1 w-8 shrink-0 rounded-full bg-muted-foreground/20" />
+      <div className="animate-in slide-in-from-bottom fade-in duration-200 pointer-events-auto fixed inset-x-0 bottom-0 z-50 flex h-[45vh] flex-col rounded-t-2xl bg-background shadow-2xl overflow-hidden">
         <div
-          className="h-1 w-full shrink-0"
+          className="h-1.5 w-full shrink-0"
           style={{ backgroundColor: routeColor }}
         />
         <div className="flex shrink-0 items-start gap-2 border-b px-4 pt-2.5 pb-2.5">
@@ -144,7 +143,7 @@ export const RouteCard = () => {
                 <div
                   className="absolute top-3 bottom-3 w-px"
                   style={{
-                    left: "26px",
+                    left: "29px",
                     backgroundColor: routeColor,
                     opacity: 0.25,
                   }}
@@ -237,7 +236,7 @@ export const RouteCard = () => {
                   <div
                     className="absolute top-3 bottom-3 w-px"
                     style={{
-                      left: "26px",
+                      left: "29px",
                       backgroundColor: routeColor,
                       opacity: 0.25,
                     }}

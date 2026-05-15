@@ -59,8 +59,7 @@ export const StationCard = () => {
     if (!selectedStopId || !stop) return null;
 
     return (
-      <div className="animate-in slide-in-from-bottom fade-in duration-200 pointer-events-auto fixed inset-x-0 bottom-0 z-50 flex h-[45vh] flex-col rounded-t-2xl border bg-background shadow-2xl">
-        <div className="mx-auto mt-3 mb-1 h-1 w-8 shrink-0 rounded-full bg-muted-foreground/20" />
+      <div className="animate-in slide-in-from-bottom fade-in duration-200 pointer-events-auto fixed inset-x-0 bottom-0 z-50 flex h-[45vh] flex-col rounded-t-2xl bg-background shadow-2xl">
         <div className="flex shrink-0 items-start gap-2 border-b px-4 pt-2.5 pb-2.5">
           <div className="min-w-0 flex-1">
             <p className="text-muted-foreground mb-0.5 text-[10px] font-medium tracking-widest uppercase">
