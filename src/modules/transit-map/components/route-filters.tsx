@@ -54,7 +54,7 @@ export const RouteFilters = () => {
 
   return (
     <section className="flex min-h-0 flex-1 flex-col gap-3">
-      <div className="flex shrink-0 items-center justify-between">
+      <div className="flex shrink-0 items-center justify-between px-2 md:px-5">
         <h2 className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
           Route Filters
         </h2>
@@ -63,11 +63,11 @@ export const RouteFilters = () => {
         </span>
       </div>
 
-      <ScrollArea className="min-h-0 flex-1 -mx-2">
+      <ScrollArea className="min-h-0 md:h-[calc(100vh-206px)]">
         <Accordion
           type="multiple"
           defaultValue={["brt"]}
-          className="flex w-full flex-col gap-1 px-2 pb-2"
+          className="flex w-full flex-col gap-1 px-2 md:pl-3"
         >
           {ALL_CATEGORIES.map((category) => {
             const entries = catalog[category] ?? [];

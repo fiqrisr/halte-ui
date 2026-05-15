@@ -49,20 +49,24 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               </span>
             </div>
 
-            <div className="flex flex-1 min-h-0 flex-col gap-6 overflow-hidden px-5 pb-2">
-              <button
-                type="button"
-                onClick={openSearch}
-                className="bg-muted/40 text-muted-foreground hover:text-foreground hover:border-foreground/30 flex w-full shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors"
-              >
-                <Search className="size-4" />
-                <span className="flex-1 text-left">Search halte or route…</span>
-                <kbd className="bg-background text-muted-foreground pointer-events-none inline-flex items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium">
-                  <span className="text-xs">⌘</span>K
-                </kbd>
-              </button>
+            <div className="flex flex-1 min-h-0 flex-col gap-6 overflow-hidden pb-2">
+              <div className="px-5">
+                <button
+                  type="button"
+                  onClick={openSearch}
+                  className="bg-muted/40 text-muted-foreground hover:text-foreground hover:border-foreground/30 flex w-full shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors"
+                >
+                  <Search className="size-4" />
+                  <span className="flex-1 text-left">
+                    Search halte or route…
+                  </span>
+                  <kbd className="bg-background text-muted-foreground pointer-events-none inline-flex items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium">
+                    <span className="text-xs">⌘</span>K
+                  </kbd>
+                </button>
+              </div>
 
-              <div className="flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 min-h-0">
                 <RouteFilters />
               </div>
             </div>
@@ -114,7 +118,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       <Drawer open={filtersOpen} onOpenChange={setFiltersOpen}>
         <DrawerContent className="h-[85vh] flex flex-col">
           <DrawerTitle className="sr-only">Route Filters</DrawerTitle>
-          <div className="flex flex-1 min-h-0 flex-col overflow-hidden px-5 pt-2 pb-6">
+          <div className="flex flex-1 min-h-0 flex-col overflow-hidden px-3 pt-2 pb-6">
             <RouteFilters />
           </div>
         </DrawerContent>

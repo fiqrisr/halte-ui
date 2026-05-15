@@ -43,7 +43,7 @@ export const TransitMapView = () => {
   }, [setTransitData, initActiveRoutes, filterInitialized]);
 
   return (
-    <div className="relative h-full min-h-[480px] w-full">
+    <div className="relative h-full min-h-120 w-full">
       <MapCanvas center={JAKARTA_CENTER} zoom={INITIAL_ZOOM}>
         <MapControls
           position="top-right"
